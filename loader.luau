@@ -1641,3 +1641,409 @@ task.spawn(function()
         scroll.CanvasSize = UDim2.new(0, 0, 0, scroll.UIListLayout.AbsoluteContentSize.Y + 40)
     end
 end)
+repeat task.wait(0.5) until Tabs and Tabs["setting"] and Tabs["setting"].Right
+
+if not Tabs or not Tabs["setting"] then
+    print("[SOLAR] Waiting for UI...")
+    repeat task.wait(0.5) until Tabs and Tabs["setting"]
+end
+
+print("[SOLAR] Loading Unnamed-Style Config System...")
+
+local ConfigSection = _G.AddSection(Tabs["setting"].Right, "config")
+
+local ConfigNameBox = Instance.new("TextBox")
+ConfigNameBox.Parent = ConfigSection
+ConfigNameBox.Size = UDim2.new(1, -10, 0, 30)
+ConfigNameBox.Position = UDim2.new(0, 5, 0, 5)
+ConfigNameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+ConfigNameBox.BorderSizePixel = 0
+ConfigNameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigNameBox.TextSize = 14
+ConfigNameBox.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigNameBox.PlaceholderText = "Config Name..."
+ConfigNameBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 170)
+ConfigNameBox.TextXAlignment = Enum.TextXAlignment.Center
+ConfigNameBox.ClearTextOnFocus = false
+
+local ConfigCorner = Instance.new("UICorner")
+ConfigCorner.CornerRadius = UDim.new(0, 6)
+ConfigCorner.Parent = ConfigNameBox
+
+local ConfigSaveBtn = Instance.new("TextButton")
+ConfigSaveBtn.Parent = ConfigSection
+ConfigSaveBtn.Size = UDim2.new(1, -10, 0, 30)
+ConfigSaveBtn.Position = UDim2.new(0, 5, 0, 40)
+ConfigSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 80, 200)
+ConfigSaveBtn.BorderSizePixel = 0
+ConfigSaveBtn.Text = "Save Config"
+ConfigSaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigSaveBtn.TextSize = 14
+ConfigSaveBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigSaveBtn.AutoButtonColor = false
+
+local ConfigSaveCorner = Instance.new("UICorner")
+ConfigSaveCorner.CornerRadius = UDim.new(0, 6)
+ConfigSaveCorner.Parent = ConfigSaveBtn
+
+local ConfigListFrame = Instance.new("Frame")
+ConfigListFrame.Parent = ConfigSection
+ConfigListFrame.Size = UDim2.new(1, -10, 0, 120)
+ConfigListFrame.Position = UDim2.new(0, 5, 0, 80)
+ConfigListFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+ConfigListFrame.BackgroundTransparency = 0.5
+ConfigListFrame.BorderSizePixel = 0
+
+local ConfigListCorner = Instance.new("UICorner")
+ConfigListCorner.CornerRadius = UDim.new(0, 6)
+ConfigListCorner.Parent = ConfigListFrame
+
+local ConfigListLayout = Instance.new("UIListLayout")
+ConfigListLayout.Parent = ConfigListFrame
+ConfigListLayout.Padding = UDim.new(0, 4)
+ConfigListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local ConfigLoadBtn = Instance.new("TextButton")
+ConfigLoadBtn.Parent = ConfigSection
+ConfigLoadBtn.Size = UDim2.new(1, -10, 0, 28)
+ConfigLoadBtn.Position = UDim2.new(0, 5, 0, 208)
+ConfigLoadBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+ConfigLoadBtn.BorderSizePixel = 0
+ConfigLoadBtn.Text = "Load Selected Config"
+ConfigLoadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigLoadBtn.TextSize = 13
+ConfigLoadBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigLoadBtn.AutoButtonColor = false
+
+local ConfigLoadCorner = Instance.new("UICorner")
+ConfigLoadCorner.CornerRadius = UDim.new(0, 6)
+ConfigLoadCorner.Parent = ConfigLoadBtn
+
+local ConfigDeleteBtn = Instance.new("TextButton")
+ConfigDeleteBtn.Parent = ConfigSection
+ConfigDeleteBtn.Size = UDim2.new(1, -10, 0, 28)
+ConfigDeleteBtn.Position = UDim2.new(0, 5, 0, 240)
+ConfigDeleteBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+ConfigDeleteBtn.BorderSizePixel = 0
+ConfigDeleteBtn.Text = "Delete Selected Config"
+ConfigDeleteBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
+ConfigDeleteBtn.TextSize = 13
+ConfigDeleteBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigDeleteBtn.AutoButtonColor = false
+
+local ConfigDeleteCorner = Instance.new("UICorner")
+ConfigDeleteCorner.CornerRadius = UDim.new(0, 6)
+ConfigDeleteCorner.Parent = ConfigDeleteBtn
+
+local ConfigAutoLabel = Instance.new("TextLabel")
+ConfigAutoLabel.Parent = ConfigSection
+ConfigAutoLabel.Size = UDim2.new(1, -10, 0, 18)
+ConfigAutoLabel.Position = UDim2.new(0, 5, 0, 275)
+ConfigAutoLabel.BackgroundTransparency = 1
+ConfigAutoLabel.Text = "Auto Load: None"
+ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+ConfigAutoLabel.TextSize = 12
+ConfigAutoLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigAutoLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local ConfigAutoBtn = Instance.new("TextButton")
+ConfigAutoBtn.Parent = ConfigSection
+ConfigAutoBtn.Size = UDim2.new(1, -10, 0, 28)
+ConfigAutoBtn.Position = UDim2.new(0, 5, 0, 298)
+ConfigAutoBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
+ConfigAutoBtn.BorderSizePixel = 0
+ConfigAutoBtn.Text = "Set Auto Load"
+ConfigAutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigAutoBtn.TextSize = 13
+ConfigAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigAutoBtn.AutoButtonColor = false
+
+local ConfigAutoCorner = Instance.new("UICorner")
+ConfigAutoCorner.CornerRadius = UDim.new(0, 6)
+ConfigAutoCorner.Parent = ConfigAutoBtn
+
+local ConfigCancelAutoBtn = Instance.new("TextButton")
+ConfigCancelAutoBtn.Parent = ConfigSection
+ConfigCancelAutoBtn.Size = UDim2.new(1, -10, 0, 28)
+ConfigCancelAutoBtn.Position = UDim2.new(0, 5, 0, 331)
+ConfigCancelAutoBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+ConfigCancelAutoBtn.BorderSizePixel = 0
+ConfigCancelAutoBtn.Text = "Cancel Auto Load"
+ConfigCancelAutoBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
+ConfigCancelAutoBtn.TextSize = 13
+ConfigCancelAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigCancelAutoBtn.AutoButtonColor = false
+
+local ConfigCancelCorner = Instance.new("UICorner")
+ConfigCancelCorner.CornerRadius = UDim.new(0, 6)
+ConfigCancelCorner.Parent = ConfigCancelAutoBtn
+
+local Configs = {}
+local SelectedConfig = nil
+local AutoLoadConfig = nil
+local ConfigFolder = "SOLARHub/Configs"
+
+if not isfolder(ConfigFolder) then
+    makefolder(ConfigFolder)
+end
+
+local function GetConfigPath(name)
+    return ConfigFolder .. "/" .. name .. ".json"
+end
+
+local function GetAllConfigs()
+    local result = {}
+    if isfolder(ConfigFolder) then
+        for _, file in ipairs(listfiles(ConfigFolder)) do
+            local name = file:match("([^/]+)%.json$")
+            if name then
+                table.insert(result, name)
+            end
+        end
+    end
+    return result
+end
+
+local function GetAllSettings()
+    local settings = {}
+    
+    local function GetValue(obj)
+        if obj and obj.GetValue then
+            return obj:GetValue()
+        elseif obj and type(obj) == "table" and obj.Value then
+            return obj.Value
+        elseif obj and type(obj) == "table" and obj._value then
+            return obj._value
+        end
+        return obj
+    end
+    
+    for key, toggle in pairs(Toggles or {}) do
+        settings[key] = {type = "Toggle", value = GetValue(toggle)}
+    end
+    
+    for key, option in pairs(Options or {}) do
+        local value = GetValue(option)
+        if type(value) == "table" then
+            settings[key] = {type = "Dropdown", value = value}
+        elseif type(value) == "number" then
+            settings[key] = {type = "Slider", value = value}
+        elseif type(value) == "string" then
+            settings[key] = {type = "Dropdown", value = value}
+        else
+            settings[key] = {type = "Input", value = value}
+        end
+    end
+    
+    return settings
+end
+
+local function LoadAllSettings(data)
+    for key, setting in pairs(data) do
+        local obj = Toggles[key] or Options[key]
+        if obj and obj.SetValue then
+            obj:SetValue(setting.value)
+        end
+    end
+end
+
+local function RefreshConfigList()
+    for _, child in ipairs(ConfigListFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+
+    Configs = GetAllConfigs()
+    local LayoutOrder = 0
+
+    for _, name in ipairs(Configs) do
+        LayoutOrder = LayoutOrder + 1
+        local btn = Instance.new("TextButton")
+        btn.Parent = ConfigListFrame
+        btn.Size = UDim2.new(1, -10, 0, 24)
+        btn.Position = UDim2.new(0, 5, 0, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        btn.BackgroundTransparency = 0.5
+        btn.BorderSizePixel = 0
+        btn.Text = name
+        btn.TextColor3 = Color3.fromRGB(200, 200, 220)
+        btn.TextSize = 13
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.TextTruncate = Enum.TextTruncate.AtEnd
+        btn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+        btn.AutoButtonColor = false
+        btn.LayoutOrder = LayoutOrder
+
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = btn
+
+        if name == SelectedConfig then
+            btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+            btn.BackgroundTransparency = 0.3
+        end
+
+        btn.MouseButton1Click:Connect(function()
+            SelectedConfig = name
+            for _, child in ipairs(ConfigListFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+                    child.BackgroundTransparency = 0.5
+                end
+            end
+            btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+            btn.BackgroundTransparency = 0.3
+            print("[SOLAR] Selected Config: " .. name)
+        end)
+
+        btn.MouseEnter:Connect(function()
+            if btn.BackgroundTransparency > 0.3 then
+                btn.BackgroundTransparency = 0.3
+            end
+        end)
+
+        btn.MouseLeave:Connect(function()
+            if SelectedConfig ~= name then
+                btn.BackgroundTransparency = 0.5
+            end
+        end)
+    end
+end
+
+ConfigSaveBtn.MouseButton1Click:Connect(function()
+    local name = ConfigNameBox.Text:gsub("%s+", "_")
+    if name == "" or name == "Config_Name..." then
+        print("[SOLAR] Please enter a config name!")
+        return
+    end
+
+    local path = GetConfigPath(name)
+    local data = GetAllSettings()
+    data._config_name = name
+    data._timestamp = os.time()
+    data._version = "1.0"
+
+    local success, err = pcall(function()
+        writefile(path, game:GetService("HttpService"):JSONEncode(data))
+    end)
+
+    if success then
+        print("[SOLAR] Config '" .. name .. "' saved!")
+        ConfigNameBox.Text = ""
+        RefreshConfigList()
+    else
+        warn("[SOLAR] Failed to save: " .. tostring(err))
+    end
+end)
+
+ConfigLoadBtn.MouseButton1Click:Connect(function()
+    if not SelectedConfig then
+        print("[SOLAR] Please select a config first!")
+        return
+    end
+
+    local path = GetConfigPath(SelectedConfig)
+    if not isfile(path) then
+        print("[SOLAR] Config file not found!")
+        RefreshConfigList()
+        return
+    end
+
+    local success, data = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(readfile(path))
+    end)
+
+    if success and data then
+        LoadAllSettings(data)
+        print("[SOLAR] Config '" .. SelectedConfig .. "' loaded!")
+    else
+        print("[SOLAR] Failed to load config!")
+    end
+end)
+
+ConfigDeleteBtn.MouseButton1Click:Connect(function()
+    if not SelectedConfig then
+        print("[SOLAR] Please select a config first!")
+        return
+    end
+
+    local path = GetConfigPath(SelectedConfig)
+    if not isfile(path) then
+        print("[SOLAR] Config file not found!")
+        RefreshConfigList()
+        return
+    end
+
+    local success, err = pcall(function()
+        delfile(path)
+    end)
+
+    if success then
+        print("[SOLAR] Config '" .. SelectedConfig .. "' deleted!")
+        if AutoLoadConfig == SelectedConfig then
+            AutoLoadConfig = nil
+            ConfigAutoLabel.Text = "Auto Load: None"
+            ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+            if isfile(ConfigFolder .. "/autoload.txt") then
+                delfile(ConfigFolder .. "/autoload.txt")
+            end
+        end
+        SelectedConfig = nil
+        RefreshConfigList()
+    else
+        warn("[SOLAR] Failed to delete: " .. tostring(err))
+    end
+end)
+
+ConfigAutoBtn.MouseButton1Click:Connect(function()
+    if not SelectedConfig then
+        print("[SOLAR] Please select a config first!")
+        return
+    end
+
+    AutoLoadConfig = SelectedConfig
+    ConfigAutoLabel.Text = "Auto Load: " .. AutoLoadConfig
+    ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+    writefile(ConfigFolder .. "/autoload.txt", AutoLoadConfig)
+    print("[SOLAR] Auto Load set to: " .. AutoLoadConfig)
+end)
+
+ConfigCancelAutoBtn.MouseButton1Click:Connect(function()
+    AutoLoadConfig = nil
+    ConfigAutoLabel.Text = "Auto Load: None"
+    ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+    if isfile(ConfigFolder .. "/autoload.txt") then
+        delfile(ConfigFolder .. "/autoload.txt")
+    end
+    print("[SOLAR] Auto Load cancelled")
+end)
+
+if isfile(ConfigFolder .. "/autoload.txt") then
+    local name = readfile(ConfigFolder .. "/autoload.txt")
+    if name ~= "" and isfile(GetConfigPath(name)) then
+        AutoLoadConfig = name
+        ConfigAutoLabel.Text = "Auto Load: " .. name
+        ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+
+        local success, data = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(readfile(GetConfigPath(name)))
+        end)
+
+        if success and data then
+            LoadAllSettings(data)
+            print("[SOLAR] Auto Loaded: " .. name)
+        end
+    else
+        ConfigAutoLabel.Text = "Auto Load: None"
+        ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+    end
+end
+
+RefreshConfigList()
+
+if Tabs["setting"].Right and Tabs["setting"].Right:FindFirstChild("UIListLayout") then
+    Tabs["setting"].Right.CanvasSize = UDim2.new(0, 0, 0, Tabs["setting"].Right.UIListLayout.AbsoluteContentSize.Y + 30)
+end
+
+print("✅ UNNAMED-STYLE CONFIG SYSTEM LOADED!")

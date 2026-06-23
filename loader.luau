@@ -1641,21 +1641,18 @@ task.spawn(function()
         scroll.CanvasSize = UDim2.new(0, 0, 0, scroll.UIListLayout.AbsoluteContentSize.Y + 40)
     end
 end)
-repeat task.wait(1) until game:IsLoaded() and Tabs and Tabs["setting"]
+repeat task.wait(0.5) until Tabs and Tabs["setting"] and Tabs["setting"].Right
 
 if not Tabs or not Tabs["setting"] then
-    print("[Config] Waiting for UI...")
-    repeat task.wait(1) until Tabs and Tabs["setting"]
+    repeat task.wait(0.5) until Tabs and Tabs["setting"]
 end
-
-print("[Config] Loading...")
 
 local ConfigScroll = Tabs["setting"].Right
 
 for _, child in ipairs(ConfigScroll:GetChildren()) do
-    if child:IsA("Frame") then
+    if child:IsA("Frame") and child:FindFirstChildOfClass("TextLabel") then
         local label = child:FindFirstChildOfClass("TextLabel")
-        if label and label.Text and label.Text:lower() == "config" then
+        if label and label.Text == "config" then
             child:Destroy()
         end
     end
@@ -1833,39 +1830,44 @@ local function GetAllConfigs()
     return result
 end
 
+local function GetValue(obj)
+    if obj and obj.GetValue then
+        return obj:GetValue()
+    elseif obj and type(obj) == "table" and obj.Value ~= nil then
+        return obj.Value
+    elseif obj and type(obj) == "table" and obj._value ~= nil then
+        return obj._value
+    end
+    return obj
+end
+
+local function SetValue(obj, val)
+    if obj and obj.SetValue then
+        obj:SetValue(val)
+    elseif obj and type(obj) == "table" and obj.Value ~= nil then
+        obj.Value = val
+    elseif obj and type(obj) == "table" and obj._value ~= nil then
+        obj._value = val
+    end
+end
+
 local function GetAllSettings()
     local settings = {}
     
     for key, toggle in pairs(Toggles or {}) do
-        local val = nil
-        if toggle.GetValue then
-            val = toggle:GetValue()
-        elseif toggle.Value ~= nil then
-            val = toggle.Value
-        elseif toggle._value ~= nil then
-            val = toggle._value
-        end
-        settings[key] = {type = "Toggle", value = val}
+        settings[key] = {type = "Toggle", value = GetValue(toggle)}
     end
     
     for key, option in pairs(Options or {}) do
-        local val = nil
-        if option.GetValue then
-            val = option:GetValue()
-        elseif option.Value ~= nil then
-            val = option.Value
-        elseif option._value ~= nil then
-            val = option._value
-        end
-        
-        if type(val) == "table" then
-            settings[key] = {type = "Dropdown", value = val}
-        elseif type(val) == "number" then
-            settings[key] = {type = "Slider", value = val}
-        elseif type(val) == "string" then
-            settings[key] = {type = "Dropdown", value = val}
+        local value = GetValue(option)
+        if type(value) == "table" then
+            settings[key] = {type = "Dropdown", value = value}
+        elseif type(value) == "number" then
+            settings[key] = {type = "Slider", value = value}
+        elseif type(value) == "string" then
+            settings[key] = {type = "Dropdown", value = value}
         else
-            settings[key] = {type = "Input", value = val}
+            settings[key] = {type = "Input", value = value}
         end
     end
     
@@ -1875,8 +1877,8 @@ end
 local function LoadAllSettings(data)
     for key, setting in pairs(data) do
         local obj = Toggles[key] or Options[key]
-        if obj and obj.SetValue then
-            obj:SetValue(setting.value)
+        if obj then
+            SetValue(obj, setting.value)
         end
     end
 end
@@ -2060,5 +2062,3 @@ RefreshConfigList()
 if ConfigScroll and ConfigScroll:FindFirstChild("UIListLayout") then
     ConfigScroll.CanvasSize = UDim2.new(0, 0, 0, ConfigScroll.UIListLayout.AbsoluteContentSize.Y + 30)
 end
-
-print("[Config] Loaded!")

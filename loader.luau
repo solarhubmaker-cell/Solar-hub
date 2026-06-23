@@ -1807,3 +1807,563 @@ _G.SetMobileFOV = function(radius)
     FOVSettings.Radius = radius
     UpdateFOVCircle()
 end
+local MiscBox = Tabs.Misc:AddLeftGroupbox('Auto')
+
+MiscBox:AddDropdown('AutoWeaponPrimary', {
+    Text = 'Primary',
+    Default = 'None',
+    Values = {'None', 'AK-47', 'M4A1', 'SCAR-L', 'AWP', 'Shotgun', 'SMG', 'P90', 'MP5', 'FAMAS', 'G36C', 'M16', 'Galil', 'FAL', 'Groza', 'Vector', 'UMP-45', 'M249', 'M60', 'Dragunov', 'VSS', 'MK14', 'ACR', 'TAR-21', 'AUG', 'L85A2', 'G3', 'HK416', 'Bizon', 'PP-19', 'MP7', 'MPX', 'KRISS Vector', 'M110', 'SR-25', 'K98k', 'M40A3', 'L96', 'Cheytac', 'Barrett'}
+})
+
+MiscBox:AddDropdown('AutoWeaponSecondary', {
+    Text = 'Secondary',
+    Default = 'None',
+    Values = {'None', 'Desert Eagle', 'Glock-18', 'Pistol', 'Revolver', 'USP', 'Five-SeveN', 'M9', 'P226', 'TEC-9', 'CZ-75', 'Beretta', 'Colt', 'Snake', 'Python', 'Magnum', 'Silenced Pistol', 'Tactical Pistol'}
+})
+
+MiscBox:AddDropdown('AutoWeaponMelee', {
+    Text = 'Melee',
+    Default = 'None',
+    Values = {'None', 'Knife', 'Katana', 'Bat', 'Axe', 'Sword', 'Dagger', 'Machete', 'Kukri', 'Combat Knife', 'Bayonet', 'Hammer', 'Wrench', 'Chainsaw', 'Bone', 'Stick', 'Pipe', 'Crowbar'}
+})
+
+MiscBox:AddDropdown('AutoWeaponUtility', {
+    Text = 'Utility',
+    Default = 'None',
+    Values = {'None', 'Grenade', 'Flashbang', 'Smoke', 'Molotov', 'Stun Grenade', 'Decoy', 'C4', 'Mine', 'Claymore', 'Bomb', 'Flare', 'Smoke Screen', 'EMP', 'Flash', 'Concussion', 'Acid Grenade', 'Incendiary', 'Frag', 'H.E. Grenade'}
+})
+
+MiscBox:AddToggle('AutoEquip', {
+    Text = 'Auto Equip',
+    Default = false
+})
+
+MiscBox:AddToggle('AutoMatch', {
+    Text = 'Auto Matchmaking',
+    Default = false
+})
+
+MiscBox:AddDropdown('AutoMatchMode', {
+    Text = 'Match Mode',
+    Default = '1v1',
+    Values = {'1v1', '2v2', '3v3', '4v4', '5v5', 'Rank 1v1', 'Rank 2v2', 'Rank 3v3'}
+})
+
+local ConfigBox = Tabs.Settings:AddRightGroupbox('Config')
+
+local ConfigNameBox = Instance.new("TextBox")
+ConfigNameBox.Parent = ConfigBox.Container
+ConfigNameBox.Size = UDim2.new(1, -20, 0, 35)
+ConfigNameBox.Position = UDim2.new(0, 10, 0, 5)
+ConfigNameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+ConfigNameBox.BorderSizePixel = 0
+ConfigNameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigNameBox.TextSize = 15
+ConfigNameBox.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigNameBox.PlaceholderText = "Config Name..."
+ConfigNameBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 170)
+ConfigNameBox.TextXAlignment = Enum.TextXAlignment.Center
+ConfigNameBox.ClearTextOnFocus = false
+
+local ConfigCorner = Instance.new("UICorner")
+ConfigCorner.CornerRadius = UDim.new(0, 6)
+ConfigCorner.Parent = ConfigNameBox
+
+local ConfigSaveBtn = Instance.new("TextButton")
+ConfigSaveBtn.Parent = ConfigBox.Container
+ConfigSaveBtn.Size = UDim2.new(1, -20, 0, 35)
+ConfigSaveBtn.Position = UDim2.new(0, 10, 0, 45)
+ConfigSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 80, 200)
+ConfigSaveBtn.BorderSizePixel = 0
+ConfigSaveBtn.Text = "Save Config"
+ConfigSaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigSaveBtn.TextSize = 16
+ConfigSaveBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigSaveBtn.AutoButtonColor = false
+
+local ConfigSaveCorner = Instance.new("UICorner")
+ConfigSaveCorner.CornerRadius = UDim.new(0, 6)
+ConfigSaveCorner.Parent = ConfigSaveBtn
+
+local ConfigListFrame = Instance.new("Frame")
+ConfigListFrame.Parent = ConfigBox.Container
+ConfigListFrame.Size = UDim2.new(1, -20, 0, 150)
+ConfigListFrame.Position = UDim2.new(0, 10, 0, 90)
+ConfigListFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+ConfigListFrame.BackgroundTransparency = 0.5
+ConfigListFrame.BorderSizePixel = 0
+
+local ConfigListCorner = Instance.new("UICorner")
+ConfigListCorner.CornerRadius = UDim.new(0, 6)
+ConfigListCorner.Parent = ConfigListFrame
+
+local ConfigListLayout = Instance.new("UIListLayout")
+ConfigListLayout.Parent = ConfigListFrame
+ConfigListLayout.Padding = UDim.new(0, 4)
+ConfigListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local ConfigLoadBtn = Instance.new("TextButton")
+ConfigLoadBtn.Parent = ConfigBox.Container
+ConfigLoadBtn.Size = UDim2.new(1, -20, 0, 30)
+ConfigLoadBtn.Position = UDim2.new(0, 10, 0, 250)
+ConfigLoadBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+ConfigLoadBtn.BorderSizePixel = 0
+ConfigLoadBtn.Text = "Load Selected Config"
+ConfigLoadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigLoadBtn.TextSize = 14
+ConfigLoadBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigLoadBtn.AutoButtonColor = false
+
+local ConfigLoadCorner = Instance.new("UICorner")
+ConfigLoadCorner.CornerRadius = UDim.new(0, 6)
+ConfigLoadCorner.Parent = ConfigLoadBtn
+
+local ConfigAutoLabel = Instance.new("TextLabel")
+ConfigAutoLabel.Parent = ConfigBox.Container
+ConfigAutoLabel.Size = UDim2.new(1, -20, 0, 20)
+ConfigAutoLabel.Position = UDim2.new(0, 10, 0, 290)
+ConfigAutoLabel.BackgroundTransparency = 1
+ConfigAutoLabel.Text = "Auto Load: None"
+ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+ConfigAutoLabel.TextSize = 13
+ConfigAutoLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigAutoLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local ConfigAutoBtn = Instance.new("TextButton")
+ConfigAutoBtn.Parent = ConfigBox.Container
+ConfigAutoBtn.Size = UDim2.new(1, -20, 0, 30)
+ConfigAutoBtn.Position = UDim2.new(0, 10, 0, 315)
+ConfigAutoBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
+ConfigAutoBtn.BorderSizePixel = 0
+ConfigAutoBtn.Text = "Set Auto Load"
+ConfigAutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigAutoBtn.TextSize = 14
+ConfigAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigAutoBtn.AutoButtonColor = false
+
+local ConfigAutoCorner = Instance.new("UICorner")
+ConfigAutoCorner.CornerRadius = UDim.new(0, 6)
+ConfigAutoCorner.Parent = ConfigAutoBtn
+
+local ConfigCancelAutoBtn = Instance.new("TextButton")
+ConfigCancelAutoBtn.Parent = ConfigBox.Container
+ConfigCancelAutoBtn.Size = UDim2.new(1, -20, 0, 30)
+ConfigCancelAutoBtn.Position = UDim2.new(0, 10, 0, 350)
+ConfigCancelAutoBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+ConfigCancelAutoBtn.BorderSizePixel = 0
+ConfigCancelAutoBtn.Text = "Cancel Auto Load"
+ConfigCancelAutoBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
+ConfigCancelAutoBtn.TextSize = 14
+ConfigCancelAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigCancelAutoBtn.AutoButtonColor = false
+
+local ConfigCancelCorner = Instance.new("UICorner")
+ConfigCancelCorner.CornerRadius = UDim.new(0, 6)
+ConfigCancelCorner.Parent = ConfigCancelAutoBtn
+
+local Configs = {}
+local SelectedConfig = nil
+local AutoLoadConfig = nil
+local ConfigFolder = "AHonaHub/Configs"
+
+if not isfolder(ConfigFolder) then
+    makefolder(ConfigFolder)
+end
+
+local function GetConfigPath(name)
+    return ConfigFolder .. "/" .. name .. ".json"
+end
+
+local function GetAllConfigs()
+    local result = {}
+    if isfolder(ConfigFolder) then
+        for _, file in ipairs(listfiles(ConfigFolder)) do
+            local name = file:match("([^/]+)%.json$")
+            if name then
+                table.insert(result, name)
+            end
+        end
+    end
+    return result
+end
+
+local function SaveAllSettings()
+    local settings = {}
+    for key, value in pairs(_G.AHonaSettings or {}) do
+        settings[key] = value
+    end
+    return settings
+end
+
+local function LoadAllSettings(data)
+    for key, value in pairs(data) do
+        if _G.AHonaSettings then
+            _G.AHonaSettings[key] = value
+        end
+    end
+end
+
+local function RefreshConfigList()
+    for _, child in ipairs(ConfigListFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    
+    Configs = GetAllConfigs()
+    local LayoutOrder = 0
+    
+    for _, name in ipairs(Configs) do
+        LayoutOrder = LayoutOrder + 1
+        local btn = Instance.new("TextButton")
+        btn.Parent = ConfigListFrame
+        btn.Size = UDim2.new(1, -10, 0, 28)
+        btn.Position = UDim2.new(0, 5, 0, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        btn.BackgroundTransparency = 0.5
+        btn.BorderSizePixel = 0
+        btn.Text = name
+        btn.TextColor3 = Color3.fromRGB(200, 200, 220)
+        btn.TextSize = 14
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.TextTruncate = Enum.TextTruncate.AtEnd
+        btn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+        btn.AutoButtonColor = false
+        btn.LayoutOrder = LayoutOrder
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = btn
+        
+        if name == SelectedConfig then
+            btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+            btn.BackgroundTransparency = 0.3
+        end
+        
+        btn.MouseButton1Click:Connect(function()
+            SelectedConfig = name
+            for _, child in ipairs(ConfigListFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+                    child.BackgroundTransparency = 0.5
+                end
+            end
+            btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+            btn.BackgroundTransparency = 0.3
+        end)
+        
+        btn.MouseEnter:Connect(function()
+            if btn.BackgroundTransparency > 0.3 then
+                btn.BackgroundTransparency = 0.3
+            end
+        end)
+        
+        btn.MouseLeave:Connect(function()
+            if SelectedConfig ~= name then
+                btn.BackgroundTransparency = 0.5
+            end
+        end)
+    end
+end
+
+ConfigSaveBtn.MouseButton1Click:Connect(function()
+    local name = ConfigNameBox.Text:gsub("%s+", "_")
+    if name == "" or name == "Config_Name..." then
+        Library:Notify("Please enter a config name!", 3)
+        return
+    end
+    
+    local path = GetConfigPath(name)
+    local data = SaveAllSettings()
+    data._config_name = name
+    data._timestamp = os.time()
+    
+    local success, err = pcall(function()
+        writefile(path, game:GetService("HttpService"):JSONEncode(data))
+    end)
+    
+    if success then
+        Library:Notify("Config '" .. name .. "' saved!", 3)
+        ConfigNameBox.Text = ""
+        RefreshConfigList()
+    else
+        Library:Notify("Failed to save: " .. tostring(err), 3)
+    end
+end)
+
+ConfigLoadBtn.MouseButton1Click:Connect(function()
+    if not SelectedConfig then
+        Library:Notify("Please select a config first!", 3)
+        return
+    end
+    
+    local path = GetConfigPath(SelectedConfig)
+    if not isfile(path) then
+        Library:Notify("Config file not found!", 3)
+        RefreshConfigList()
+        return
+    end
+    
+    local success, data = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(readfile(path))
+    end)
+    
+    if success and data then
+        LoadAllSettings(data)
+        Library:Notify("Config '" .. SelectedConfig .. "' loaded!", 3)
+        
+        for key, value in pairs(data) do
+            if Library.Toggles and Library.Toggles[key] then
+                Library.Toggles[key]:SetValue(value)
+            end
+            if Library.Options and Library.Options[key] then
+                Library.Options[key]:SetValue(value)
+            end
+        end
+    else
+        Library:Notify("Failed to load config!", 3)
+    end
+end)
+
+ConfigAutoBtn.MouseButton1Click:Connect(function()
+    if not SelectedConfig then
+        Library:Notify("Please select a config first!", 3)
+        return
+    end
+    
+    AutoLoadConfig = SelectedConfig
+    ConfigAutoLabel.Text = "Auto Load: " .. AutoLoadConfig
+    ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+    writefile(ConfigFolder .. "/autoload.txt", AutoLoadConfig)
+    Library:Notify("Auto Load set to: " .. AutoLoadConfig, 3)
+end)
+
+ConfigCancelAutoBtn.MouseButton1Click:Connect(function()
+    AutoLoadConfig = nil
+    ConfigAutoLabel.Text = "Auto Load: None"
+    ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+    if isfile(ConfigFolder .. "/autoload.txt") then
+        delfile(ConfigFolder .. "/autoload.txt")
+    end
+    Library:Notify("Auto Load cancelled", 3)
+end)
+
+if isfile(ConfigFolder .. "/autoload.txt") then
+    local name = readfile(ConfigFolder .. "/autoload.txt")
+    if name ~= "" and isfile(GetConfigPath(name)) then
+        AutoLoadConfig = name
+        ConfigAutoLabel.Text = "Auto Load: " .. name
+        ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+        
+        local success, data = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(readfile(GetConfigPath(name)))
+        end)
+        
+        if success and data then
+            LoadAllSettings(data)
+            for key, value in pairs(data) do
+                if Library.Toggles and Library.Toggles[key] then
+                    Library.Toggles[key]:SetValue(value)
+                end
+                if Library.Options and Library.Options[key] then
+                    Library.Options[key]:SetValue(value)
+                end
+            end
+            print("[AHona] Auto Loaded: " .. name)
+        end
+    else
+        ConfigAutoLabel.Text = "Auto Load: None"
+        ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+    end
+end
+
+RefreshConfigList()
+
+local function AutoEquipWeapon(weaponName)
+    if not weaponName or weaponName == "None" then return end
+    local char = LocalPlayer.Character
+    if not char then return end
+    for _, tool in ipairs(char:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name == weaponName then
+            task.spawn(function()
+                pcall(function()
+                    tool.Parent = char
+                    task.wait(0.1)
+                    char:FindFirstChild("Humanoid"):EquipTool(tool)
+                end)
+            end)
+            return true
+        end
+    end
+    return false
+end
+
+local function FindWeaponInBackpack(weaponName)
+    if not weaponName or weaponName == "None" then return nil end
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if not backpack then return nil end
+    for _, tool in ipairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name == weaponName then
+            return tool
+        end
+    end
+    return nil
+end
+
+local function AutoEquipAll()
+    local primary = Options.AutoWeaponPrimary and Options.AutoWeaponPrimary.Value or "None"
+    local secondary = Options.AutoWeaponSecondary and Options.AutoWeaponSecondary.Value or "None"
+    local melee = Options.AutoWeaponMelee and Options.AutoWeaponMelee.Value or "None"
+    local utility = Options.AutoWeaponUtility and Options.AutoWeaponUtility.Value or "None"
+    
+    if primary ~= "None" then
+        if not AutoEquipWeapon(primary) then
+            local tool = FindWeaponInBackpack(primary)
+            if tool then
+                tool.Parent = LocalPlayer.Character
+                task.wait(0.1)
+                AutoEquipWeapon(primary)
+            end
+        end
+    end
+    
+    if secondary ~= "None" then
+        task.wait(0.05)
+        if not AutoEquipWeapon(secondary) then
+            local tool = FindWeaponInBackpack(secondary)
+            if tool then
+                tool.Parent = LocalPlayer.Character
+                task.wait(0.1)
+                AutoEquipWeapon(secondary)
+            end
+        end
+    end
+    
+    if melee ~= "None" then
+        task.wait(0.05)
+        if not AutoEquipWeapon(melee) then
+            local tool = FindWeaponInBackpack(melee)
+            if tool then
+                tool.Parent = LocalPlayer.Character
+                task.wait(0.1)
+                AutoEquipWeapon(melee)
+            end
+        end
+    end
+    
+    if utility ~= "None" then
+        task.wait(0.05)
+        if not AutoEquipWeapon(utility) then
+            local tool = FindWeaponInBackpack(utility)
+            if tool then
+                tool.Parent = LocalPlayer.Character
+                task.wait(0.1)
+                AutoEquipWeapon(utility)
+            end
+        end
+    end
+end
+
+local function StartAutoMatch()
+    local mode = Options.AutoMatchMode and Options.AutoMatchMode.Value or "1v1"
+    local players = tonumber(mode:match("(%d+)v%d+")) or 1
+    local isRank = mode:find("Rank") and true or false
+    
+    local gamemode = isRank and "Ranked" or "Casual"
+    local teamSize = isRank and math.min(players, 3) or players
+    
+    local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+    if not remotes then return end
+    
+    local matchRemote = remotes:FindFirstChild("Matchmaking")
+    if matchRemote then
+        local args = {gamemode, teamSize}
+        if isRank then
+            table.insert(args, "Ranked")
+        end
+        pcall(function()
+            matchRemote:FireServer(unpack(args))
+        end)
+        Library:Notify("Searching for " .. mode .. " match...", 3)
+    end
+end
+
+task.spawn(function()
+    while task.wait(2) do
+        pcall(function()
+            if Toggles.AutoEquip and Toggles.AutoEquip.Value then
+                AutoEquipAll()
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(10) do
+        pcall(function()
+            if Toggles.AutoMatch and Toggles.AutoMatch.Value then
+                StartAutoMatch()
+            end
+        end)
+    end
+end)
+
+_G.AHonaSettings = {}
+
+local settingKeys = {
+    'AutoWeaponPrimary', 'AutoWeaponSecondary', 'AutoWeaponMelee', 'AutoWeaponUtility',
+    'AutoEquip', 'AutoMatch', 'AutoMatchMode',
+    'MobileAimEnable', 'MobileAimSmooth', 'MobileFOVRadius', 'MobileFOVVisible',
+    'RageEnable', 'TeleportMode', 'TeleportHeight', 'TeleportSpeed', 'DesyncStrength', 'SuperDesync',
+    'SilentEnable', 'Wallbang', 'BulletSpeed', 'DesyncDist', 'SilentFOV', 'DrawFOV',
+    'ESPBox', 'ESPSkeleton', 'ESPHealth', 'ESPName', 'ESPDistance', 'ESPTracer', 'ESPChams',
+    'FlyEnable', 'FlySpeed', 'NoclipEnable', 'InfJumpEnable', 'WalkSpeedEnable', 'WalkSpeedValue',
+    'JumpPowerEnable', 'JumpPowerValue', 'RapidEnable', 'RapidSpeed'
+}
+
+for _, key in ipairs(settingKeys) do
+    _G.AHonaSettings[key] = nil
+end
+
+for key, toggle in pairs(Library.Toggles or {}) do
+    _G.AHonaSettings[key] = toggle.Value
+end
+
+for key, option in pairs(Library.Options or {}) do
+    _G.AHonaSettings[key] = option.Value
+end
+
+local function UpdateSettings()
+    for key, toggle in pairs(Library.Toggles or {}) do
+        _G.AHonaSettings[key] = toggle.Value
+    end
+    for key, option in pairs(Library.Options or {}) do
+        _G.AHonaSettings[key] = option.Value
+    end
+end
+
+for key, toggle in pairs(Library.Toggles or {}) do
+    if toggle.SetValue then
+        local oldSet = toggle.SetValue
+        toggle.SetValue = function(self, val)
+            oldSet(self, val)
+            _G.AHonaSettings[key] = val
+        end
+    end
+end
+
+for key, option in pairs(Library.Options or {}) do
+    if option.SetValue then
+        local oldSet = option.SetValue
+        option.SetValue = function(self, val)
+            oldSet(self, val)
+            _G.AHonaSettings[key] = val
+        end
+    end
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        UpdateSettings()
+    end
+end)

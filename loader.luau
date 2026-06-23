@@ -1641,121 +1641,269 @@ task.spawn(function()
         scroll.CanvasSize = UDim2.new(0, 0, 0, scroll.UIListLayout.AbsoluteContentSize.Y + 40)
     end
 end)
-task.spawn(function()
-    repeat task.wait(0.1) until Tabs and Tabs["main"] and Tabs["main"].Left
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+local aimTarget = nil
+local fovCircle = nil
 
-    local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-    local aimTarget = nil
-    local fovCircle = nil
-
-    pcall(function()
-        if Drawing then
-            fovCircle = Drawing.new("Circle")
-            fovCircle.Visible = false
-            fovCircle.Color = Color3.new(1, 1, 1)
-            fovCircle.Thickness = 1
-            fovCircle.NumSides = 64
-            fovCircle.Filled = false
-            fovCircle.Radius = 150
-            fovCircle.Position = Camera.ViewportSize / 2
-        end
-    end)
-
-    local FOVSettings = {
-        Radius = 150,
-        Visible = false,
-        Color = Color3.new(1, 1, 1),
-        Smoothness = 0.3,
-        Enabled = false,
-    }
-
-    local function GetClosestAimbot()
-        if not FOVSettings.Enabled then return nil end
-        
-        local target, closestDist = nil, FOVSettings.Radius
-        local center = Camera.ViewportSize / 2
-        
-        for _, p in ipairs(Players:GetPlayers()) do
-            pcall(function()
-                if p == LocalPlayer then return end
-                if not p.Character then return end
-                
-                local head = p.Character:FindFirstChild("Head")
-                local hum = p.Character:FindFirstChild("Humanoid")
-                if not head or not hum or hum.Health <= 0 then return end
-                
-                if p.Team and LocalPlayer.Team and p.Team == LocalPlayer.Team then return end
-                
-                local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-                if onScreen then
-                    local dist = (center - Vector2.new(pos.X, pos.Y)).Magnitude
-                    if dist < closestDist then
-                        closestDist = dist
-                        target = head
-                    end
-                end
-            end)
-        end
-        return target
-    end
-
-    local function UpdateFOVCircle()
-        if not fovCircle then return end
+pcall(function()
+    if Drawing then
+        fovCircle = Drawing.new("Circle")
+        fovCircle.Visible = false
+        fovCircle.Color = Color3.new(1, 1, 1)
+        fovCircle.Thickness = 1
+        fovCircle.NumSides = 64
+        fovCircle.Filled = false
+        fovCircle.Radius = 150
         fovCircle.Position = Camera.ViewportSize / 2
-        fovCircle.Radius = FOVSettings.Radius
-        fovCircle.Color = FOVSettings.Color
-        fovCircle.Visible = FOVSettings.Visible and FOVSettings.Enabled
     end
+end)
 
-    RunService.RenderStepped:Connect(function()
+local FOVSettings = {
+    Radius = 150,
+    Visible = false,
+    Color = Color3.new(1, 1, 1),
+    Smoothness = 0.3,
+    Enabled = false,
+}
+
+local function GetClosestAimbot()
+    if not FOVSettings.Enabled then return nil end
+    
+    local target, closestDist = nil, FOVSettings.Radius
+    local center = Camera.ViewportSize / 2
+    
+    for _, p in ipairs(Players:GetPlayers()) do
         pcall(function()
-            UpdateFOVCircle()
+            if p == LocalPlayer then return end
+            if not p.Character then return end
             
-            if not FOVSettings.Enabled then return end
+            local head = p.Character:FindFirstChild("Head")
+            local hum = p.Character:FindFirstChild("Humanoid")
+            if not head or not hum or hum.Health <= 0 then return end
             
-            aimTarget = GetClosestAimbot()
-            if not aimTarget then return end
+            if p.Team and LocalPlayer.Team and p.Team == LocalPlayer.Team then return end
             
-            local pos, onScreen = Camera:WorldToViewportPoint(aimTarget.Position)
-            if not onScreen then return end
-            
-            if isMobile then
-                local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if hrp and aimTarget.Parent then
-                    local targetRoot = aimTarget.Parent:FindFirstChild("HumanoidRootPart")
-                    if targetRoot then
-                        local lookAt = CFrame.new(hrp.Position, targetRoot.Position)
-                        hrp.CFrame = hrp.CFrame:Lerp(lookAt, FOVSettings.Smoothness)
-                    end
-                end
-            else
-                if mousemoverel then
-                    local smooth = FOVSettings.Smoothness
-                    local deltaX = (pos.X - Mouse.X) * smooth
-                    local deltaY = (pos.Y - Mouse.Y) * smooth
-                    mousemoverel(deltaX, deltaY)
+            local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
+            if onScreen then
+                local dist = (center - Vector2.new(pos.X, pos.Y)).Magnitude
+                if dist < closestDist then
+                    closestDist = dist
+                    target = head
                 end
             end
         end)
-    end)
+    end
+    return target
+end
 
-    local MainScroll = Tabs["main"].Left
-    
-    local CombatSection = nil
-    for _, child in pairs(MainScroll:GetChildren()) do
-        if child:IsA("Frame") and child:FindFirstChildOfClass("TextLabel") then
-            if string.find(string.lower(child:FindFirstChildOfClass("TextLabel").Text), "combat") then
-                CombatSection = child:FindFirstChildOfClass("Frame")
-                break
+local function UpdateFOVCircle()
+    if not fovCircle then return end
+    fovCircle.Position = Camera.ViewportSize / 2
+    fovCircle.Radius = FOVSettings.Radius
+    fovCircle.Color = FOVSettings.Color
+    fovCircle.Visible = FOVSettings.Visible and FOVSettings.Enabled
+end
+
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        UpdateFOVCircle()
+        
+        if not FOVSettings.Enabled then return end
+        
+        aimTarget = GetClosestAimbot()
+        if not aimTarget then return end
+        
+        local pos, onScreen = Camera:WorldToViewportPoint(aimTarget.Position)
+        if not onScreen then return end
+        
+        local center = Camera.ViewportSize / 2
+        local targetPos = Vector2.new(pos.X, pos.Y)
+        
+        if isMobile then
+            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp and aimTarget.Parent then
+                local targetRoot = aimTarget.Parent:FindFirstChild("HumanoidRootPart")
+                if targetRoot then
+                    local lookAt = CFrame.new(hrp.Position, targetRoot.Position)
+                    hrp.CFrame = hrp.CFrame:Lerp(lookAt, FOVSettings.Smoothness)
+                end
+            end
+        else
+            if mousemoverel then
+                local smooth = FOVSettings.Smoothness
+                local deltaX = (pos.X - Mouse.X) * smooth
+                local deltaY = (pos.Y - Mouse.Y) * smooth
+                mousemoverel(deltaX, deltaY)
             end
         end
+    end)
+end)
+
+local AimbotBox = Tabs.Combat:AddLeftGroupbox('Mobile Aimbot')
+
+AimbotBox:AddToggle('MobileAimEnable', {
+    Text = '모바일 에임봇 켜기',
+    Default = false,
+    Callback = function(v)
+        FOVSettings.Enabled = v
+        if fovCircle then
+            fovCircle.Visible = v and FOVSettings.Visible
+        end
     end
-    
-    if not CombatSection then
-        CombatSection = _G.AddSection(MainScroll, "combat")
+})
+
+AimbotBox:AddSlider('MobileAimSmooth', {
+    Text = '에임 부드러움',
+    Default = 0.3,
+    Min = 0.05,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(v)
+        FOVSettings.Smoothness = v
+    end
+})
+
+AimbotBox:AddSlider('MobileFOVRadius', {
+    Text = 'FOV 크기',
+    Default = 150,
+    Min = 30,
+    Max = 500,
+    Rounding = 0,
+    Callback = function(v)
+        FOVSettings.Radius = v
+        UpdateFOVCircle()
+    end
+})
+
+AimbotBox:AddToggle('MobileFOVVisible', {
+    Text = 'FOV 원 표시',
+    Default = false,
+    Callback = function(v)
+        FOVSettings.Visible = v
+        if fovCircle then
+            fovCircle.Visible = v and FOVSettings.Enabled
+        end
+    end
+})
+
+AimbotBox:AddColorPicker('MobileFOVColor', {
+    Text = 'FOV 색상',
+    Default = Color3.new(1, 1, 1),
+    Callback = function(v)
+        FOVSettings.Color = v
+        UpdateFOVCircle()
+    end
+})
+
+_G.ToggleMobileAimbot = function(state)
+    FOVSettings.Enabled = state
+    if fovCircle then
+        fovCircle.Visible = state and FOVSettings.Visible
+    end
+    print("[Mobile Aimbot] " .. (state and "ON" or "OFF"))
+end
+
+_G.SetMobileFOV = function(radius)
+    FOVSettings.Radius = radius
+    UpdateFOVCircle()
+end
+task.spawn(function()
+    repeat task.wait(0.3) until Tabs and Tabs["misc"] and Tabs["misc"].Left
+
+    local MiscScroll = Tabs["misc"].Left
+    local AutoSection = _G.AddSection(MiscScroll, "auto")
+
+    local function AddDropdown(parent, label, options, default, callback)
+        local Row = Instance.new("Frame", parent)
+        Row.Size = UDim2.new(1, 0, 0, 35)
+        Row.BackgroundTransparency = 1
+
+        local Label = Instance.new("TextLabel", Row)
+        Label.Size = UDim2.new(0.5, 0, 1, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = label
+        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
+        Label.Font = Enum.Font.Code
+        Label.TextSize = 11
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+
+        local DropBtn = Instance.new("TextButton", Row)
+        DropBtn.Size = UDim2.new(0.4, 0, 1, 0)
+        DropBtn.Position = UDim2.new(0.6, 0, 0, 0)
+        DropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        DropBtn.BorderSizePixel = 1
+        DropBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        DropBtn.Text = default
+        DropBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        DropBtn.TextSize = 11
+        DropBtn.Font = Enum.Font.Code
+
+        local DropList = Instance.new("Frame", Row)
+        DropList.Size = UDim2.new(0.4, 0, 0, 0)
+        DropList.Position = UDim2.new(0.6, 0, 1, 2)
+        DropList.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        DropList.BorderSizePixel = 1
+        DropList.BorderColor3 = Color3.fromRGB(40, 40, 40)
+        DropList.Visible = false
+        DropList.ClipsDescendants = true
+
+        local ListLayout = Instance.new("UIListLayout", DropList)
+        ListLayout.Padding = UDim.new(0, 2)
+
+        local isOpen = false
+        local selected = default
+
+        DropBtn.MouseButton1Click:Connect(function()
+            isOpen = not isOpen
+            DropList.Visible = isOpen
+            if isOpen then
+                DropList.Size = UDim2.new(0.4, 0, 0, math.min(#options * 22, 110))
+            else
+                DropList.Size = UDim2.new(0.4, 0, 0, 0)
+            end
+        end)
+
+        for _, opt in ipairs(options) do
+            local Item = Instance.new("TextButton", DropList)
+            Item.Size = UDim2.new(1, 0, 0, 22)
+            Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+            Item.BorderSizePixel = 0
+            Item.Text = opt
+            Item.TextColor3 = Color3.fromRGB(200, 200, 200)
+            Item.TextSize = 11
+            Item.Font = Enum.Font.Code
+
+            Item.MouseEnter:Connect(function()
+                Item.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+            end)
+
+            Item.MouseLeave:Connect(function()
+                Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+            end)
+
+            Item.MouseButton1Click:Connect(function()
+                selected = opt
+                DropBtn.Text = opt
+                isOpen = false
+                DropList.Visible = false
+                DropList.Size = UDim2.new(0.4, 0, 0, 0)
+                if callback then callback(opt) end
+            end)
+        end
+
+        return {
+            SetValue = function(self, val)
+                selected = val
+                DropBtn.Text = val
+                if callback then callback(val) end
+            end,
+            GetValue = function(self)
+                return selected
+            end
+        }
     end
 
-    local function AddAimbotToggle(parent, text, default, callback)
+    local function AddToggle(parent, text, default, callback)
         local Row = Instance.new("Frame", parent)
         Row.Size = UDim2.new(1, 0, 0, 22)
         Row.BackgroundTransparency = 1
@@ -1798,110 +1946,562 @@ task.spawn(function()
         }
     end
 
-    local function AddAimbotSlider(parent, text, min, max, default, callback)
-        local SliderRow = Instance.new("Frame", parent)
-        SliderRow.Size = UDim2.new(1, 0, 0, 32)
-        SliderRow.BackgroundTransparency = 1
+    local primaryDrop = AddDropdown(AutoSection, "Primary", {
+        'None', 'Assault Rifle', 'Burst Rifle', 'Crossbow', 'Gunblade', 'RPG',
+        'Shotgun', 'Sniper', 'Energy Rifle', 'Flamethrower', 'Grenade Launcher',
+        'Minigun', 'Paintball Gun'
+    }, 'None')
 
-        local Label = Instance.new("TextLabel", SliderRow)
-        Label.Size = UDim2.new(1, 0, 0, 14)
-        Label.Position = UDim2.new(0, 5, 0, 0)
-        Label.BackgroundTransparency = 1
-        Label.Text = text
-        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
-        Label.Font = Enum.Font.Code
-        Label.TextSize = 11
-        Label.TextXAlignment = Enum.TextXAlignment.Left
+    local secondaryDrop = AddDropdown(AutoSection, "Secondary", {
+        'None', 'Handgun', 'Daggers', 'Flare Gun', 'Revolver', 'Shorty',
+        'Spray', 'Uzi', 'Energy Pistols', 'Exogun', 'Slingshot', 'Warper'
+    }, 'None')
 
-        local ValueLabel = Instance.new("TextLabel", SliderRow)
-        ValueLabel.Size = UDim2.new(1, -10, 0, 14)
-        ValueLabel.Position = UDim2.new(0, 0, 0, 0)
-        ValueLabel.BackgroundTransparency = 1
-        ValueLabel.Text = default .. " / " .. max
-        ValueLabel.TextColor3 = Color3.fromRGB(255, 0, 50)
-        ValueLabel.Font = Enum.Font.Code
-        ValueLabel.TextSize = 11
-        ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    local meleeDrop = AddDropdown(AutoSection, "Melee", {
+        'None', 'Knife', 'Scythe', 'Katana', 'Riot Shield', 'Fists',
+        'Battle Axe', 'Chainsaw', 'Trowel', 'Spear', 'Maul'
+    }, 'None')
 
-        local Track = Instance.new("TextButton", SliderRow)
-        Track.Size = UDim2.new(1, -10, 0, 10)
-        Track.Position = UDim2.new(0, 5, 0, 16)
-        Track.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        Track.BorderSizePixel = 1
-        Track.BorderColor3 = Color3.fromRGB(40, 40, 40)
-        Track.Text = ""
+    local utilityDrop = AddDropdown(AutoSection, "Utility", {
+        'None', 'Grappler', 'Medkit', 'Subspace Tripmine', 'Warpstone',
+        'Flashbang', 'Freeze Ray', 'Grenade', 'Jump Pad', 'Molotov',
+        'Satchel', 'Smoke Grenade', 'War Horn', 'Elixir', 'RNG Dice'
+    }, 'None')
 
-        local Fill = Instance.new("Frame", Track)
-        Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-        Fill.BackgroundColor3 = Color3.fromRGB(255, 0, 50)
-        Fill.BorderSizePixel = 0
+    local autoEquipToggle = AddToggle(AutoSection, "Auto Equip", false)
+    local autoMatchToggle = AddToggle(AutoSection, "Auto Matchmaking", false)
 
-        local SetValue = function(input)
-            local l = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
-            Fill.Size = UDim2.new(l, 0, 1, 0)
-            local val = math.floor(min + (max - min) * l)
-            ValueLabel.Text = val .. " / " .. max
-            callback(val)
+    local matchDrop = AddDropdown(AutoSection, "Match Mode", {
+        '1v1', '2v2', '3v3', '4v4', '5v5', 'Rank 1v1', 'Rank 2v2', 'Rank 3v3'
+    }, '1v1')
+
+    Options = Options or {}
+    Options.AutoWeaponPrimary = primaryDrop
+    Options.AutoWeaponSecondary = secondaryDrop
+    Options.AutoWeaponMelee = meleeDrop
+    Options.AutoWeaponUtility = utilityDrop
+    Options.AutoEquip = autoEquipToggle
+    Options.AutoMatch = autoMatchToggle
+    Options.AutoMatchMode = matchDrop
+
+    Toggles = Toggles or {}
+    Toggles.AutoEquip = autoEquipToggle
+    Toggles.AutoMatch = autoMatchToggle
+
+    if MiscScroll and MiscScroll:FindFirstChild("UIListLayout") then
+        MiscScroll.CanvasSize = UDim2.new(0, 0, 0, MiscScroll.UIListLayout.AbsoluteContentSize.Y + 30)
+    end
+end)
+
+task.spawn(function()
+    local function AutoEquipWeapon(weaponName)
+        if not weaponName or weaponName == "None" then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        for _, tool in ipairs(char:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name == weaponName then
+                task.spawn(function()
+                    pcall(function()
+                        tool.Parent = char
+                        task.wait(0.1)
+                        local hum = char:FindFirstChild("Humanoid")
+                        if hum then hum:EquipTool(tool) end
+                    end)
+                end)
+                return true
+            end
         end
-
-        local IsDragging = false
-        Track.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                IsDragging = true
-                SetValue(input)
-            end
-        end)
-        UserInputService.InputChanged:Connect(function(input)
-            if IsDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                SetValue(input)
-            end
-        end)
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                IsDragging = false
-            end
-        end)
-
-        return {
-            SetValue = function(self, val)
-                local percent = (val - min) / (max - min)
-                Fill.Size = UDim2.new(percent, 0, 1, 0)
-                ValueLabel.Text = val .. " / " .. max
-                callback(val)
-            end,
-            GetValue = function(self)
-                local percent = Fill.Size.X.Scale
-                return math.floor(min + (max - min) * percent)
-            end
-        }
+        return false
     end
 
-    local aimbotToggle = AddAimbotToggle(CombatSection, "Mobile Aimbot", false, function(state)
-        FOVSettings.Enabled = state
-        if fovCircle then
-            fovCircle.Visible = state and FOVSettings.Visible
+    local function FindWeaponInBackpack(weaponName)
+        if not weaponName or weaponName == "None" then return nil end
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        if not backpack then return nil end
+        for _, tool in ipairs(backpack:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name == weaponName then
+                return tool
+            end
         end
-    end)
-
-    local smoothSlider = AddAimbotSlider(CombatSection, "Aim Smoothness", 0.05, 1, 0.3, function(val)
-        FOVSettings.Smoothness = val
-    end)
-
-    local fovSlider = AddAimbotSlider(CombatSection, "FOV Radius", 30, 500, 150, function(val)
-        FOVSettings.Radius = val
-        UpdateFOVCircle()
-    end)
-
-    local fovToggle = AddAimbotToggle(CombatSection, "Show FOV Circle", false, function(state)
-        FOVSettings.Visible = state
-        if fovCircle then
-            fovCircle.Visible = state and FOVSettings.Enabled
-        end
-    end)
-
-    if MainScroll and MainScroll:FindFirstChild("UIListLayout") then
-        MainScroll.CanvasSize = UDim2.new(0, 0, 0, MainScroll.UIListLayout.AbsoluteContentSize.Y + 30)
+        return nil
     end
 
-    print("✅ Mobile Aimbot Added to MAIN Tab!")
+    local function AutoEquipAll()
+        local primary = Options.AutoWeaponPrimary and Options.AutoWeaponPrimary.GetValue and Options.AutoWeaponPrimary:GetValue() or "None"
+        local secondary = Options.AutoWeaponSecondary and Options.AutoWeaponSecondary.GetValue and Options.AutoWeaponSecondary:GetValue() or "None"
+        local melee = Options.AutoWeaponMelee and Options.AutoWeaponMelee.GetValue and Options.AutoWeaponMelee:GetValue() or "None"
+        local utility = Options.AutoWeaponUtility and Options.AutoWeaponUtility.GetValue and Options.AutoWeaponUtility:GetValue() or "None"
+
+        if primary ~= "None" then
+            if not AutoEquipWeapon(primary) then
+                local tool = FindWeaponInBackpack(primary)
+                if tool then
+                    tool.Parent = LocalPlayer.Character
+                    task.wait(0.1)
+                    AutoEquipWeapon(primary)
+                end
+            end
+        end
+
+        if secondary ~= "None" then
+            task.wait(0.05)
+            if not AutoEquipWeapon(secondary) then
+                local tool = FindWeaponInBackpack(secondary)
+                if tool then
+                    tool.Parent = LocalPlayer.Character
+                    task.wait(0.1)
+                    AutoEquipWeapon(secondary)
+                end
+            end
+        end
+
+        if melee ~= "None" then
+            task.wait(0.05)
+            if not AutoEquipWeapon(melee) then
+                local tool = FindWeaponInBackpack(melee)
+                if tool then
+                    tool.Parent = LocalPlayer.Character
+                    task.wait(0.1)
+                    AutoEquipWeapon(melee)
+                end
+            end
+        end
+
+        if utility ~= "None" then
+            task.wait(0.05)
+            if not AutoEquipWeapon(utility) then
+                local tool = FindWeaponInBackpack(utility)
+                if tool then
+                    tool.Parent = LocalPlayer.Character
+                    task.wait(0.1)
+                    AutoEquipWeapon(utility)
+                end
+            end
+        end
+    end
+
+    while task.wait(2) do
+        pcall(function()
+            if Toggles.AutoEquip and Toggles.AutoEquip.GetValue and Toggles.AutoEquip:GetValue() then
+                AutoEquipAll()
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    local function StartAutoMatch()
+        local mode = Options.AutoMatchMode and Options.AutoMatchMode.GetValue and Options.AutoMatchMode:GetValue() or "1v1"
+        local players = tonumber(mode:match("(%d+)v%d+")) or 1
+        local isRank = mode:find("Rank") and true or false
+
+        local gamemode = isRank and "Ranked" or "Casual"
+        local teamSize = isRank and math.min(players, 3) or players
+
+        local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+        if not remotes then return end
+
+        local matchRemote = remotes:FindFirstChild("Matchmaking")
+        if matchRemote then
+            local args = {gamemode, teamSize}
+            if isRank then
+                table.insert(args, "Ranked")
+            end
+            pcall(function()
+                matchRemote:FireServer(unpack(args))
+            end)
+        end
+    end
+
+    while task.wait(10) do
+        pcall(function()
+            if Toggles.AutoMatch and Toggles.AutoMatch.GetValue and Toggles.AutoMatch:GetValue() then
+                StartAutoMatch()
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    repeat task.wait(0.3) until Tabs and Tabs["setting"] and Tabs["setting"].Right
+
+    local ConfigScroll = Tabs["setting"].Right
+    local ConfigSection = _G.AddSection(ConfigScroll, "config")
+
+    local ConfigNameBox = Instance.new("TextBox")
+    ConfigNameBox.Parent = ConfigSection
+    ConfigNameBox.Size = UDim2.new(1, -10, 0, 30)
+    ConfigNameBox.Position = UDim2.new(0, 5, 0, 5)
+    ConfigNameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    ConfigNameBox.BorderSizePixel = 0
+    ConfigNameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ConfigNameBox.TextSize = 14
+    ConfigNameBox.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+    ConfigNameBox.PlaceholderText = "Config Name..."
+    ConfigNameBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 170)
+    ConfigNameBox.TextXAlignment = Enum.TextXAlignment.Center
+    ConfigNameBox.ClearTextOnFocus = false
+
+    local ConfigCorner = Instance.new("UICorner")
+    ConfigCorner.CornerRadius = UDim.new(0, 6)
+    ConfigCorner.Parent = ConfigNameBox
+
+    local ConfigSaveBtn = Instance.new("TextButton")
+    ConfigSaveBtn.Parent = ConfigSection
+    ConfigSaveBtn.Size = UDim2.new(1, -10, 0, 30)
+    ConfigSaveBtn.Position = UDim2.new(0, 5, 0, 40)
+    ConfigSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 80, 200)
+    ConfigSaveBtn.BorderSizePixel = 0
+    ConfigSaveBtn.Text = "Save Config"
+    ConfigSaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ConfigSaveBtn.TextSize = 14
+    ConfigSaveBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+    ConfigSaveBtn.AutoButtonColor = false
+
+    local ConfigSaveCorner = Instance.new("UICorner")
+    ConfigSaveCorner.CornerRadius = UDim.new(0, 6)
+    ConfigSaveCorner.Parent = ConfigSaveBtn
+
+    local ConfigListFrame = Instance.new("Frame")
+    ConfigListFrame.Parent = ConfigSection
+    ConfigListFrame.Size = UDim2.new(1, -10, 0, 120)
+    ConfigListFrame.Position = UDim2.new(0, 5, 0, 80)
+    ConfigListFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    ConfigListFrame.BackgroundTransparency = 0.5
+    ConfigListFrame.BorderSizePixel = 0
+
+    local ConfigListCorner = Instance.new("UICorner")
+    ConfigListCorner.CornerRadius = UDim.new(0, 6)
+    ConfigListCorner.Parent = ConfigListFrame
+
+    local ConfigListLayout = Instance.new("UIListLayout")
+    ConfigListLayout.Parent = ConfigListFrame
+    ConfigListLayout.Padding = UDim.new(0, 4)
+    ConfigListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local ConfigLoadBtn = Instance.new("TextButton")
+    ConfigLoadBtn.Parent = ConfigSection
+    ConfigLoadBtn.Size = UDim2.new(1, -10, 0, 28)
+    ConfigLoadBtn.Position = UDim2.new(0, 5, 0, 208)
+    ConfigLoadBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    ConfigLoadBtn.BorderSizePixel = 0
+    ConfigLoadBtn.Text = "Load Selected Config"
+    ConfigLoadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ConfigLoadBtn.TextSize = 13
+    ConfigLoadBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+    ConfigLoadBtn.AutoButtonColor = false
+
+    local ConfigLoadCorner = Instance.new("UICorner")
+    ConfigLoadCorner.CornerRadius = UDim.new(0, 6)
+    ConfigLoadCorner.Parent = ConfigLoadBtn
+
+    local ConfigAutoLabel = Instance.new("TextLabel")
+    ConfigAutoLabel.Parent = ConfigSection
+    ConfigAutoLabel.Size = UDim2.new(1, -10, 0, 18)
+    ConfigAutoLabel.Position = UDim2.new(0, 5, 0, 242)
+    ConfigAutoLabel.BackgroundTransparency = 1
+    ConfigAutoLabel.Text = "Auto Load: None"
+    ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+    ConfigAutoLabel.TextSize = 12
+    ConfigAutoLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+    ConfigAutoLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+    local ConfigAutoBtn = Instance.new("TextButton")
+    ConfigAutoBtn.Parent = ConfigSection
+    ConfigAutoBtn.Size = UDim2.new(1, -10, 0, 28)
+    ConfigAutoBtn.Position = UDim2.new(0, 5, 0, 265)
+    ConfigAutoBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
+    ConfigAutoBtn.BorderSizePixel = 0
+    ConfigAutoBtn.Text = "Set Auto Load"
+    ConfigAutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ConfigAutoBtn.TextSize = 13
+    ConfigAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+    ConfigAutoBtn.AutoButtonColor = false
+
+    local ConfigAutoCorner = Instance.new("UICorner")
+    ConfigAutoCorner.CornerRadius = UDim.new(0, 6)
+    ConfigAutoCorner.Parent = ConfigAutoBtn
+
+    local ConfigCancelAutoBtn = Instance.new("TextButton")
+    ConfigCancelAutoBtn.Parent = ConfigSection
+    ConfigCancelAutoBtn.Size = UDim2.new(1, -10, 0, 28)
+    ConfigCancelAutoBtn.Position = UDim2.new(0, 5, 0, 298)
+    ConfigCancelAutoBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+    ConfigCancelAutoBtn.BorderSizePixel = 0
+    ConfigCancelAutoBtn.Text = "Cancel Auto Load"
+    ConfigCancelAutoBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
+    ConfigCancelAutoBtn.TextSize = 13
+    ConfigCancelAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+    ConfigCancelAutoBtn.AutoButtonColor = false
+
+    local ConfigCancelCorner = Instance.new("UICorner")
+    ConfigCancelCorner.CornerRadius = UDim.new(0, 6)
+    ConfigCancelCorner.Parent = ConfigCancelAutoBtn
+
+    local Configs = {}
+    local SelectedConfig = nil
+    local AutoLoadConfig = nil
+    local ConfigFolder = "SOLARHub/Configs"
+
+    if not isfolder(ConfigFolder) then
+        makefolder(ConfigFolder)
+    end
+
+    local function GetConfigPath(name)
+        return ConfigFolder .. "/" .. name .. ".json"
+    end
+
+    local function GetAllConfigs()
+        local result = {}
+        if isfolder(ConfigFolder) then
+            for _, file in ipairs(listfiles(ConfigFolder)) do
+                local name = file:match("([^/]+)%.json$")
+                if name then
+                    table.insert(result, name)
+                end
+            end
+        end
+        return result
+    end
+
+    local function SaveAllSettings()
+        local settings = {}
+        for key, value in pairs(_G.SOLARSettings or {}) do
+            settings[key] = value
+        end
+        return settings
+    end
+
+    local function LoadAllSettings(data)
+        for key, value in pairs(data) do
+            if _G.SOLARSettings then
+                _G.SOLARSettings[key] = value
+            end
+            if Toggles and Toggles[key] then
+                Toggles[key]:SetValue(value)
+            end
+            if Options and Options[key] then
+                Options[key]:SetValue(value)
+            end
+        end
+    end
+
+    local function RefreshConfigList()
+        for _, child in ipairs(ConfigListFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+
+        Configs = GetAllConfigs()
+        local LayoutOrder = 0
+
+        for _, name in ipairs(Configs) do
+            LayoutOrder = LayoutOrder + 1
+            local btn = Instance.new("TextButton")
+            btn.Parent = ConfigListFrame
+            btn.Size = UDim2.new(1, -10, 0, 24)
+            btn.Position = UDim2.new(0, 5, 0, 0)
+            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+            btn.BackgroundTransparency = 0.5
+            btn.BorderSizePixel = 0
+            btn.Text = name
+            btn.TextColor3 = Color3.fromRGB(200, 200, 220)
+            btn.TextSize = 13
+            btn.TextXAlignment = Enum.TextXAlignment.Left
+            btn.TextTruncate = Enum.TextTruncate.AtEnd
+            btn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+            btn.AutoButtonColor = false
+            btn.LayoutOrder = LayoutOrder
+
+            local btnCorner = Instance.new("UICorner")
+            btnCorner.CornerRadius = UDim.new(0, 4)
+            btnCorner.Parent = btn
+
+            if name == SelectedConfig then
+                btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+                btn.BackgroundTransparency = 0.3
+            end
+
+            btn.MouseButton1Click:Connect(function()
+                SelectedConfig = name
+                for _, child in ipairs(ConfigListFrame:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+                        child.BackgroundTransparency = 0.5
+                    end
+                end
+                btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+                btn.BackgroundTransparency = 0.3
+            end)
+
+            btn.MouseEnter:Connect(function()
+                if btn.BackgroundTransparency > 0.3 then
+                    btn.BackgroundTransparency = 0.3
+                end
+            end)
+
+            btn.MouseLeave:Connect(function()
+                if SelectedConfig ~= name then
+                    btn.BackgroundTransparency = 0.5
+                end
+            end)
+        end
+    end
+
+    ConfigSaveBtn.MouseButton1Click:Connect(function()
+        local name = ConfigNameBox.Text:gsub("%s+", "_")
+        if name == "" or name == "Config_Name..." then
+            print("[SOLAR] Please enter a config name!")
+            return
+        end
+
+        local path = GetConfigPath(name)
+        local data = SaveAllSettings()
+        data._config_name = name
+        data._timestamp = os.time()
+
+        local success, err = pcall(function()
+            writefile(path, game:GetService("HttpService"):JSONEncode(data))
+        end)
+
+        if success then
+            print("[SOLAR] Config '" .. name .. "' saved!")
+            ConfigNameBox.Text = ""
+            RefreshConfigList()
+        else
+            warn("[SOLAR] Failed to save: " .. tostring(err))
+        end
+    end)
+
+    ConfigLoadBtn.MouseButton1Click:Connect(function()
+        if not SelectedConfig then
+            print("[SOLAR] Please select a config first!")
+            return
+        end
+
+        local path = GetConfigPath(SelectedConfig)
+        if not isfile(path) then
+            print("[SOLAR] Config file not found!")
+            RefreshConfigList()
+            return
+        end
+
+        local success, data = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(readfile(path))
+        end)
+
+        if success and data then
+            LoadAllSettings(data)
+            print("[SOLAR] Config '" .. SelectedConfig .. "' loaded!")
+        else
+            print("[SOLAR] Failed to load config!")
+        end
+    end)
+
+    ConfigAutoBtn.MouseButton1Click:Connect(function()
+        if not SelectedConfig then
+            print("[SOLAR] Please select a config first!")
+            return
+        end
+
+        AutoLoadConfig = SelectedConfig
+        ConfigAutoLabel.Text = "Auto Load: " .. AutoLoadConfig
+        ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+        writefile(ConfigFolder .. "/autoload.txt", AutoLoadConfig)
+        print("[SOLAR] Auto Load set to: " .. AutoLoadConfig)
+    end)
+
+    ConfigCancelAutoBtn.MouseButton1Click:Connect(function()
+        AutoLoadConfig = nil
+        ConfigAutoLabel.Text = "Auto Load: None"
+        ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+        if isfile(ConfigFolder .. "/autoload.txt") then
+            delfile(ConfigFolder .. "/autoload.txt")
+        end
+        print("[SOLAR] Auto Load cancelled")
+    end)
+
+    if isfile(ConfigFolder .. "/autoload.txt") then
+        local name = readfile(ConfigFolder .. "/autoload.txt")
+        if name ~= "" and isfile(GetConfigPath(name)) then
+            AutoLoadConfig = name
+            ConfigAutoLabel.Text = "Auto Load: " .. name
+            ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+
+            local success, data = pcall(function()
+                return game:GetService("HttpService"):JSONDecode(readfile(GetConfigPath(name)))
+            end)
+
+            if success and data then
+                LoadAllSettings(data)
+                print("[SOLAR] Auto Loaded: " .. name)
+            end
+        else
+            ConfigAutoLabel.Text = "Auto Load: None"
+            ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+        end
+    end
+
+    RefreshConfigList()
+
+    if ConfigScroll and ConfigScroll:FindFirstChild("UIListLayout") then
+        ConfigScroll.CanvasSize = UDim2.new(0, 0, 0, ConfigScroll.UIListLayout.AbsoluteContentSize.Y + 30)
+    end
+
+    _G.SOLARSettings = {}
+
+    local settingKeys = {
+        'AutoWeaponPrimary', 'AutoWeaponSecondary', 'AutoWeaponMelee', 'AutoWeaponUtility',
+        'AutoEquip', 'AutoMatch', 'AutoMatchMode'
+    }
+
+    for _, key in ipairs(settingKeys) do
+        _G.SOLARSettings[key] = nil
+    end
+
+    for key, toggle in pairs(Toggles or {}) do
+        _G.SOLARSettings[key] = toggle.GetValue and toggle:GetValue() or toggle.Value
+    end
+
+    for key, option in pairs(Options or {}) do
+        _G.SOLARSettings[key] = option.GetValue and option:GetValue() or option.Value
+    end
+
+    local function UpdateSettings()
+        for key, toggle in pairs(Toggles or {}) do
+            _G.SOLARSettings[key] = toggle.GetValue and toggle:GetValue() or toggle.Value
+        end
+        for key, option in pairs(Options or {}) do
+            _G.SOLARSettings[key] = option.GetValue and option:GetValue() or option.Value
+        end
+    end
+
+    for key, toggle in pairs(Toggles or {}) do
+        if toggle.SetValue then
+            local oldSet = toggle.SetValue
+            toggle.SetValue = function(self, val)
+                oldSet(self, val)
+                _G.SOLARSettings[key] = val
+            end
+        end
+    end
+
+    for key, option in pairs(Options or {}) do
+        if option.SetValue then
+            local oldSet = option.SetValue
+            option.SetValue = function(self, val)
+                oldSet(self, val)
+                _G.SOLARSettings[key] = val
+            end
+        end
+    end
+
+    task.spawn(function()
+        while task.wait(1) do
+            UpdateSettings()
+        end
+    end)
+
+    print("✅ SOLAR HUB - AUTO & CONFIG SYSTEM LOADED!")
 end)

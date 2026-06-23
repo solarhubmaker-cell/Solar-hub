@@ -1812,25 +1812,25 @@ local MiscBox = Tabs.Misc:AddLeftGroupbox('Auto')
 MiscBox:AddDropdown('AutoWeaponPrimary', {
     Text = 'Primary',
     Default = 'None',
-    Values = {'None', 'AK-47', 'M4A1', 'SCAR-L', 'AWP', 'Shotgun', 'SMG', 'P90', 'MP5', 'FAMAS', 'G36C', 'M16', 'Galil', 'FAL', 'Groza', 'Vector', 'UMP-45', 'M249', 'M60', 'Dragunov', 'VSS', 'MK14', 'ACR', 'TAR-21', 'AUG', 'L85A2', 'G3', 'HK416', 'Bizon', 'PP-19', 'MP7', 'MPX', 'KRISS Vector', 'M110', 'SR-25', 'K98k', 'M40A3', 'L96', 'Cheytac', 'Barrett'}
+    Values = {'None', 'Assault Rifle', 'Burst Rifle', 'Crossbow', 'Gunblade', 'RPG', 'Shotgun', 'Sniper', 'Energy Rifle', 'Flamethrower', 'Grenade Launcher', 'Minigun', 'Paintball Gun'}
 })
 
 MiscBox:AddDropdown('AutoWeaponSecondary', {
     Text = 'Secondary',
     Default = 'None',
-    Values = {'None', 'Desert Eagle', 'Glock-18', 'Pistol', 'Revolver', 'USP', 'Five-SeveN', 'M9', 'P226', 'TEC-9', 'CZ-75', 'Beretta', 'Colt', 'Snake', 'Python', 'Magnum', 'Silenced Pistol', 'Tactical Pistol'}
+    Values = {'None', 'Handgun', 'Daggers', 'Flare Gun', 'Revolver', 'Shorty', 'Spray', 'Uzi', 'Energy Pistols', 'Exogun', 'Slingshot', 'Warper'}
 })
 
 MiscBox:AddDropdown('AutoWeaponMelee', {
     Text = 'Melee',
     Default = 'None',
-    Values = {'None', 'Knife', 'Katana', 'Bat', 'Axe', 'Sword', 'Dagger', 'Machete', 'Kukri', 'Combat Knife', 'Bayonet', 'Hammer', 'Wrench', 'Chainsaw', 'Bone', 'Stick', 'Pipe', 'Crowbar'}
+    Values = {'None', 'Knife', 'Scythe', 'Katana', 'Riot Shield', 'Fists', 'Battle Axe', 'Chainsaw', 'Trowel', 'Spear', 'Maul'}
 })
 
 MiscBox:AddDropdown('AutoWeaponUtility', {
     Text = 'Utility',
     Default = 'None',
-    Values = {'None', 'Grenade', 'Flashbang', 'Smoke', 'Molotov', 'Stun Grenade', 'Decoy', 'C4', 'Mine', 'Claymore', 'Bomb', 'Flare', 'Smoke Screen', 'EMP', 'Flash', 'Concussion', 'Acid Grenade', 'Incendiary', 'Frag', 'H.E. Grenade'}
+    Values = {'None', 'Grappler', 'Medkit', 'Subspace Tripmine', 'Warpstone', 'Flashbang', 'Freeze Ray', 'Grenade', 'Jump Pad', 'Molotov', 'Satchel', 'Smoke Grenade', 'War Horn', 'Elixir', 'RNG Dice'}
 })
 
 MiscBox:AddToggle('AutoEquip', {
@@ -1964,7 +1964,7 @@ ConfigCancelCorner.Parent = ConfigCancelAutoBtn
 local Configs = {}
 local SelectedConfig = nil
 local AutoLoadConfig = nil
-local ConfigFolder = "AHonaHub/Configs"
+local ConfigFolder = "SOLARHub/Configs"
 
 if not isfolder(ConfigFolder) then
     makefolder(ConfigFolder)
@@ -1989,7 +1989,7 @@ end
 
 local function SaveAllSettings()
     local settings = {}
-    for key, value in pairs(_G.AHonaSettings or {}) do
+    for key, value in pairs(_G.SOLARSettings or {}) do
         settings[key] = value
     end
     return settings
@@ -1997,8 +1997,8 @@ end
 
 local function LoadAllSettings(data)
     for key, value in pairs(data) do
-        if _G.AHonaSettings then
-            _G.AHonaSettings[key] = value
+        if _G.SOLARSettings then
+            _G.SOLARSettings[key] = value
         end
     end
 end
@@ -2069,7 +2069,7 @@ end
 ConfigSaveBtn.MouseButton1Click:Connect(function()
     local name = ConfigNameBox.Text:gsub("%s+", "_")
     if name == "" or name == "Config_Name..." then
-        Library:Notify("Please enter a config name!", 3)
+        print("[SOLAR] Please enter a config name!")
         return
     end
     
@@ -2083,23 +2083,23 @@ ConfigSaveBtn.MouseButton1Click:Connect(function()
     end)
     
     if success then
-        Library:Notify("Config '" .. name .. "' saved!", 3)
+        print("[SOLAR] Config '" .. name .. "' saved!")
         ConfigNameBox.Text = ""
         RefreshConfigList()
     else
-        Library:Notify("Failed to save: " .. tostring(err), 3)
+        warn("[SOLAR] Failed to save: " .. tostring(err))
     end
 end)
 
 ConfigLoadBtn.MouseButton1Click:Connect(function()
     if not SelectedConfig then
-        Library:Notify("Please select a config first!", 3)
+        print("[SOLAR] Please select a config first!")
         return
     end
     
     local path = GetConfigPath(SelectedConfig)
     if not isfile(path) then
-        Library:Notify("Config file not found!", 3)
+        print("[SOLAR] Config file not found!")
         RefreshConfigList()
         return
     end
@@ -2110,24 +2110,27 @@ ConfigLoadBtn.MouseButton1Click:Connect(function()
     
     if success and data then
         LoadAllSettings(data)
-        Library:Notify("Config '" .. SelectedConfig .. "' loaded!", 3)
+        print("[SOLAR] Config '" .. SelectedConfig .. "' loaded!")
         
         for key, value in pairs(data) do
-            if Library.Toggles and Library.Toggles[key] then
-                Library.Toggles[key]:SetValue(value)
+            if _G.SOLARSettings then
+                _G.SOLARSettings[key] = value
             end
-            if Library.Options and Library.Options[key] then
-                Library.Options[key]:SetValue(value)
+            if Toggles and Toggles[key] then
+                Toggles[key]:SetValue(value)
+            end
+            if Options and Options[key] then
+                Options[key]:SetValue(value)
             end
         end
     else
-        Library:Notify("Failed to load config!", 3)
+        print("[SOLAR] Failed to load config!")
     end
 end)
 
 ConfigAutoBtn.MouseButton1Click:Connect(function()
     if not SelectedConfig then
-        Library:Notify("Please select a config first!", 3)
+        print("[SOLAR] Please select a config first!")
         return
     end
     
@@ -2135,7 +2138,7 @@ ConfigAutoBtn.MouseButton1Click:Connect(function()
     ConfigAutoLabel.Text = "Auto Load: " .. AutoLoadConfig
     ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
     writefile(ConfigFolder .. "/autoload.txt", AutoLoadConfig)
-    Library:Notify("Auto Load set to: " .. AutoLoadConfig, 3)
+    print("[SOLAR] Auto Load set to: " .. AutoLoadConfig)
 end)
 
 ConfigCancelAutoBtn.MouseButton1Click:Connect(function()
@@ -2145,7 +2148,7 @@ ConfigCancelAutoBtn.MouseButton1Click:Connect(function()
     if isfile(ConfigFolder .. "/autoload.txt") then
         delfile(ConfigFolder .. "/autoload.txt")
     end
-    Library:Notify("Auto Load cancelled", 3)
+    print("[SOLAR] Auto Load cancelled")
 end)
 
 if isfile(ConfigFolder .. "/autoload.txt") then
@@ -2162,14 +2165,17 @@ if isfile(ConfigFolder .. "/autoload.txt") then
         if success and data then
             LoadAllSettings(data)
             for key, value in pairs(data) do
-                if Library.Toggles and Library.Toggles[key] then
-                    Library.Toggles[key]:SetValue(value)
+                if _G.SOLARSettings then
+                    _G.SOLARSettings[key] = value
                 end
-                if Library.Options and Library.Options[key] then
-                    Library.Options[key]:SetValue(value)
+                if Toggles and Toggles[key] then
+                    Toggles[key]:SetValue(value)
+                end
+                if Options and Options[key] then
+                    Options[key]:SetValue(value)
                 end
             end
-            print("[AHona] Auto Loaded: " .. name)
+            print("[SOLAR] Auto Loaded: " .. name)
         end
     else
         ConfigAutoLabel.Text = "Auto Load: None"
@@ -2211,10 +2217,10 @@ local function FindWeaponInBackpack(weaponName)
 end
 
 local function AutoEquipAll()
-    local primary = Options.AutoWeaponPrimary and Options.AutoWeaponPrimary.Value or "None"
-    local secondary = Options.AutoWeaponSecondary and Options.AutoWeaponSecondary.Value or "None"
-    local melee = Options.AutoWeaponMelee and Options.AutoWeaponMelee.Value or "None"
-    local utility = Options.AutoWeaponUtility and Options.AutoWeaponUtility.Value or "None"
+    local primary = Options and Options.AutoWeaponPrimary and Options.AutoWeaponPrimary.Value or "None"
+    local secondary = Options and Options.AutoWeaponSecondary and Options.AutoWeaponSecondary.Value or "None"
+    local melee = Options and Options.AutoWeaponMelee and Options.AutoWeaponMelee.Value or "None"
+    local utility = Options and Options.AutoWeaponUtility and Options.AutoWeaponUtility.Value or "None"
     
     if primary ~= "None" then
         if not AutoEquipWeapon(primary) then
@@ -2265,7 +2271,7 @@ local function AutoEquipAll()
 end
 
 local function StartAutoMatch()
-    local mode = Options.AutoMatchMode and Options.AutoMatchMode.Value or "1v1"
+    local mode = Options and Options.AutoMatchMode and Options.AutoMatchMode.Value or "1v1"
     local players = tonumber(mode:match("(%d+)v%d+")) or 1
     local isRank = mode:find("Rank") and true or false
     
@@ -2284,14 +2290,14 @@ local function StartAutoMatch()
         pcall(function()
             matchRemote:FireServer(unpack(args))
         end)
-        Library:Notify("Searching for " .. mode .. " match...", 3)
+        print("[SOLAR] Searching for " .. mode .. " match...")
     end
 end
 
 task.spawn(function()
     while task.wait(2) do
         pcall(function()
-            if Toggles.AutoEquip and Toggles.AutoEquip.Value then
+            if Toggles and Toggles.AutoEquip and Toggles.AutoEquip.Value then
                 AutoEquipAll()
             end
         end)
@@ -2301,63 +2307,57 @@ end)
 task.spawn(function()
     while task.wait(10) do
         pcall(function()
-            if Toggles.AutoMatch and Toggles.AutoMatch.Value then
+            if Toggles and Toggles.AutoMatch and Toggles.AutoMatch.Value then
                 StartAutoMatch()
             end
         end)
     end
 end)
 
-_G.AHonaSettings = {}
+_G.SOLARSettings = {}
 
 local settingKeys = {
     'AutoWeaponPrimary', 'AutoWeaponSecondary', 'AutoWeaponMelee', 'AutoWeaponUtility',
-    'AutoEquip', 'AutoMatch', 'AutoMatchMode',
-    'MobileAimEnable', 'MobileAimSmooth', 'MobileFOVRadius', 'MobileFOVVisible',
-    'RageEnable', 'TeleportMode', 'TeleportHeight', 'TeleportSpeed', 'DesyncStrength', 'SuperDesync',
-    'SilentEnable', 'Wallbang', 'BulletSpeed', 'DesyncDist', 'SilentFOV', 'DrawFOV',
-    'ESPBox', 'ESPSkeleton', 'ESPHealth', 'ESPName', 'ESPDistance', 'ESPTracer', 'ESPChams',
-    'FlyEnable', 'FlySpeed', 'NoclipEnable', 'InfJumpEnable', 'WalkSpeedEnable', 'WalkSpeedValue',
-    'JumpPowerEnable', 'JumpPowerValue', 'RapidEnable', 'RapidSpeed'
+    'AutoEquip', 'AutoMatch', 'AutoMatchMode'
 }
 
 for _, key in ipairs(settingKeys) do
-    _G.AHonaSettings[key] = nil
+    _G.SOLARSettings[key] = nil
 end
 
-for key, toggle in pairs(Library.Toggles or {}) do
-    _G.AHonaSettings[key] = toggle.Value
+for key, toggle in pairs(Toggles or {}) do
+    _G.SOLARSettings[key] = toggle.Value
 end
 
-for key, option in pairs(Library.Options or {}) do
-    _G.AHonaSettings[key] = option.Value
+for key, option in pairs(Options or {}) do
+    _G.SOLARSettings[key] = option.Value
 end
 
 local function UpdateSettings()
-    for key, toggle in pairs(Library.Toggles or {}) do
-        _G.AHonaSettings[key] = toggle.Value
+    for key, toggle in pairs(Toggles or {}) do
+        _G.SOLARSettings[key] = toggle.Value
     end
-    for key, option in pairs(Library.Options or {}) do
-        _G.AHonaSettings[key] = option.Value
+    for key, option in pairs(Options or {}) do
+        _G.SOLARSettings[key] = option.Value
     end
 end
 
-for key, toggle in pairs(Library.Toggles or {}) do
+for key, toggle in pairs(Toggles or {}) do
     if toggle.SetValue then
         local oldSet = toggle.SetValue
         toggle.SetValue = function(self, val)
             oldSet(self, val)
-            _G.AHonaSettings[key] = val
+            _G.SOLARSettings[key] = val
         end
     end
 end
 
-for key, option in pairs(Library.Options or {}) do
+for key, option in pairs(Options or {}) do
     if option.SetValue then
         local oldSet = option.SetValue
         option.SetValue = function(self, val)
             oldSet(self, val)
-            _G.AHonaSettings[key] = val
+            _G.SOLARSettings[key] = val
         end
     end
 end

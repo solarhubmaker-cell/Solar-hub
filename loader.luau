@@ -1641,3 +1641,107 @@ task.spawn(function()
         scroll.CanvasSize = UDim2.new(0, 0, 0, scroll.UIListLayout.AbsoluteContentSize.Y + 40)
     end
 end)
+task.spawn(function()
+    repeat task.wait(0.1) until Tabs and Tabs["main"] and Tabs["main"].Left
+
+    local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
+    local Camera = workspace.CurrentCamera
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    _G.AimbotEnabled = false
+    _G.AimbotKey = Enum.UserInputType.MouseButton2
+    _G.AimbotFOV = 200
+    _G.AimbotSmooth = 0.5
+    _G.TargetPart = "Head"
+    _G.FOVCircleEnabled = false
+
+    local function getClosest()
+        local target, closest = nil, _G.AimbotFOV
+        local mousePos = UserInputService:GetMouseLocation()
+        
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                local char = player.Character
+                local targetPart = char and char:FindFirstChild(_G.TargetPart)
+                
+                if targetPart and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+                    local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                    if onScreen then
+                        local dist = (mousePos - Vector2.new(pos.X, pos.Y)).Magnitude
+                        if dist < closest then
+                            closest = dist
+                            target = targetPart
+                        end
+                    end
+                end
+            end
+        end
+        return target
+    end
+
+    RunService.RenderStepped:Connect(function()
+        if not _G.AimbotEnabled then return end
+        if not UserInputService:IsMouseButtonPressed(_G.AimbotKey) then return end
+        
+        local target = getClosest()
+        if target then
+            local pos = Camera:WorldToViewportPoint(target.Position)
+            local smooth = _G.AimbotSmooth / 10
+            mousemoverel((pos.X - Camera.ViewportSize.X/2) * smooth, (pos.Y - Camera.ViewportSize.Y/2) * smooth)
+        end
+    end)
+
+    local circle = Drawing.new("Circle")
+    circle.Visible = false
+
+    RunService.RenderStepped:Connect(function()
+        if _G.FOVCircleEnabled then
+            circle.Position = Camera.ViewportSize / 2
+            circle.Radius = _G.AimbotFOV
+            circle.Color = Color3.fromRGB(255, 0, 50)
+            circle.Thickness = 1
+            circle.Filled = false
+            circle.NumSides = 64
+            circle.Visible = true
+        else
+            circle.Visible = false
+        end
+    end)
+
+    local MainPageScroll = Tabs["main"].Left
+    local CombatSection = nil
+    for _, child in pairs(MainPageScroll:GetChildren()) do
+        if child:IsA("Frame") and child:FindFirstChildOfClass("TextLabel") then
+            local label = child:FindFirstChildOfClass("TextLabel")
+            if label and string.find(string.lower(label.Text), "combat") then
+                CombatSection = child:FindFirstChildOfClass("Frame")
+                break
+            end
+        end
+    end
+    if not CombatSection then
+        CombatSection = _G.AddSection(MainPageScroll, "combat")
+    end
+
+    _G.AddToggle(CombatSection, "aimbot", false, function(state)
+        _G.AimbotEnabled = state
+    end)
+
+    _G.AddToggle(CombatSection, "fov circle", false, function(state)
+        _G.FOVCircleEnabled = state
+    end)
+
+    _G.AddSlider(CombatSection, "fov size", 30, 500, 200, function(val)
+        _G.AimbotFOV = val
+    end)
+
+    _G.AddSlider(CombatSection, "aimbot smoothness", 1, 10, 5, function(val)
+        _G.AimbotSmooth = val
+    end)
+
+    if MainPageScroll:FindFirstChild("UIListLayout") then
+        MainPageScroll.CanvasSize = UDim2.new(0, 0, 0, MainPageScroll.UIListLayout.AbsoluteContentSize.Y + 30)
+    end
+end)

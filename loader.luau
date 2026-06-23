@@ -1641,380 +1641,342 @@ task.spawn(function()
         scroll.CanvasSize = UDim2.new(0, 0, 0, scroll.UIListLayout.AbsoluteContentSize.Y + 40)
     end
 end)
-task.spawn(function()
-    repeat task.wait(0.5) until Tabs and Tabs["misc"] and Tabs["misc"].Left
+repeat task.wait(0.5) until Tabs and Tabs["misc"] and Tabs["setting"]
 
-    local MiscScroll = Tabs["misc"].Left
-    local AutoSection = _G.AddSection(MiscScroll, "auto")
+if not Tabs or not Tabs["misc"] or not Tabs["setting"] then
+    print("[SOLAR] Waiting for UI...")
+    repeat task.wait(0.5) until Tabs and Tabs["misc"] and Tabs["setting"]
+end
 
-    local function AddDropdown(parent, label, options, default, callback)
-        local Row = Instance.new("Frame", parent)
-        Row.Size = UDim2.new(1, 0, 0, 35)
-        Row.BackgroundTransparency = 1
-        Row.ZIndex = 20
+print("[SOLAR] Loading Auto & Config System...")
 
-        local Label = Instance.new("TextLabel", Row)
-        Label.Size = UDim2.new(0.5, 0, 1, 0)
-        Label.BackgroundTransparency = 1
-        Label.Text = label
-        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
-        Label.Font = Enum.Font.Code
-        Label.TextSize = 11
-        Label.TextXAlignment = Enum.TextXAlignment.Left
-        Label.ZIndex = 20
+local function AddDropdown(parent, label, options, default, callback)
+    local Row = Instance.new("Frame", parent)
+    Row.Size = UDim2.new(1, 0, 0, 35)
+    Row.BackgroundTransparency = 1
+    Row.ZIndex = 50
 
-        local DropBtn = Instance.new("TextButton", Row)
-        DropBtn.Size = UDim2.new(0.4, 0, 1, 0)
-        DropBtn.Position = UDim2.new(0.6, 0, 0, 0)
-        DropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-        DropBtn.BorderSizePixel = 1
-        DropBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
-        DropBtn.Text = default
-        DropBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-        DropBtn.TextSize = 11
-        DropBtn.Font = Enum.Font.Code
-        DropBtn.ZIndex = 20
+    local Label = Instance.new("TextLabel", Row)
+    Label.Size = UDim2.new(0.5, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = label
+    Label.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Label.Font = Enum.Font.Code
+    Label.TextSize = 11
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.ZIndex = 50
 
-        local DropList = Instance.new("Frame", Row)
-        DropList.Size = UDim2.new(0.4, 0, 0, 0)
-        DropList.Position = UDim2.new(0.6, 0, 1, 2)
-        DropList.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-        DropList.BorderSizePixel = 1
-        DropList.BorderColor3 = Color3.fromRGB(40, 40, 40)
-        DropList.Visible = false
-        DropList.ClipsDescendants = true
-        DropList.ZIndex = 999
-        DropList.BackgroundTransparency = 0
+    local DropBtn = Instance.new("TextButton", Row)
+    DropBtn.Size = UDim2.new(0.4, 0, 1, 0)
+    DropBtn.Position = UDim2.new(0.6, 0, 0, 0)
+    DropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    DropBtn.BorderSizePixel = 1
+    DropBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
+    DropBtn.Text = default
+    DropBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    DropBtn.TextSize = 11
+    DropBtn.Font = Enum.Font.Code
+    DropBtn.ZIndex = 50
 
-        local ListLayout = Instance.new("UIListLayout", DropList)
-        ListLayout.Padding = UDim.new(0, 1)
+    local DropList = Instance.new("Frame", Row)
+    DropList.Size = UDim2.new(0.4, 0, 0, 0)
+    DropList.Position = UDim2.new(0.6, 0, 1, 2)
+    DropList.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    DropList.BorderSizePixel = 1
+    DropList.BorderColor3 = Color3.fromRGB(40, 40, 40)
+    DropList.Visible = false
+    DropList.ClipsDescendants = true
+    DropList.ZIndex = 999
+    DropList.BackgroundTransparency = 0
 
-        local isOpen = false
-        local selected = default
+    local ListLayout = Instance.new("UIListLayout", DropList)
+    ListLayout.Padding = UDim.new(0, 1)
 
-        DropBtn.MouseButton1Click:Connect(function()
-            isOpen = not isOpen
-            DropList.Visible = isOpen
-            if isOpen then
-                DropList.Size = UDim2.new(0.4, 0, 0, math.min(#options * 23, 115))
-                DropList.ZIndex = 999
-            else
-                DropList.Size = UDim2.new(0.4, 0, 0, 0)
-            end
-        end)
+    local isOpen = false
+    local selected = default
 
-        for _, opt in ipairs(options) do
-            local Item = Instance.new("TextButton", DropList)
-            Item.Size = UDim2.new(1, 0, 0, 23)
-            Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-            Item.BackgroundTransparency = 0
-            Item.BorderSizePixel = 0
-            Item.Text = opt
-            Item.TextColor3 = Color3.fromRGB(200, 200, 200)
-            Item.TextSize = 11
-            Item.Font = Enum.Font.Code
-            Item.ZIndex = 999
-            Item.AutoButtonColor = false
-
-            Item.MouseEnter:Connect(function()
-                Item.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-            end)
-
-            Item.MouseLeave:Connect(function()
-                Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-            end)
-
-            Item.MouseButton1Click:Connect(function()
-                selected = opt
-                DropBtn.Text = opt
-                isOpen = false
-                DropList.Visible = false
-                DropList.Size = UDim2.new(0.4, 0, 0, 0)
-                if callback then callback(opt) end
-                print("[SOLAR] Selected: " .. label .. " = " .. opt)
-            end)
+    DropBtn.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        DropList.Visible = isOpen
+        if isOpen then
+            DropList.Size = UDim2.new(0.4, 0, 0, math.min(#options * 23, 115))
+            DropList.ZIndex = 999
+        else
+            DropList.Size = UDim2.new(0.4, 0, 0, 0)
         end
+    end)
 
-        local result = {
-            _value = default,
-            SetValue = function(self, val)
-                self._value = val
-                DropBtn.Text = val
-                if callback then callback(val) end
-            end,
-            GetValue = function(self)
-                return self._value
-            end
-        }
+    for _, opt in ipairs(options) do
+        local Item = Instance.new("TextButton", DropList)
+        Item.Size = UDim2.new(1, 0, 0, 23)
+        Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+        Item.BackgroundTransparency = 0
+        Item.BorderSizePixel = 0
+        Item.Text = opt
+        Item.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Item.TextSize = 11
+        Item.Font = Enum.Font.Code
+        Item.ZIndex = 999
+        Item.AutoButtonColor = false
 
-        return result
-    end
-
-    local function AddToggle(parent, text, default, callback)
-        local Row = Instance.new("Frame", parent)
-        Row.Size = UDim2.new(1, 0, 0, 22)
-        Row.BackgroundTransparency = 1
-        Row.ZIndex = 20
-
-        local Box = Instance.new("TextButton", Row)
-        Box.Size = UDim2.new(0, 12, 0, 12)
-        Box.Position = UDim2.new(0, 5, 0.5, -6)
-        Box.BorderSizePixel = 1
-        Box.BorderColor3 = Color3.fromRGB(60, 60, 60)
-        Box.Text = ""
-        Box.BackgroundColor3 = default and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
-        Box.ZIndex = 20
-
-        local Label = Instance.new("TextLabel", Row)
-        Label.Size = UDim2.new(1, -25, 1, 0)
-        Label.Position = UDim2.new(0, 22, 0, 0)
-        Label.BackgroundTransparency = 1
-        Label.Text = text
-        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
-        Label.Font = Enum.Font.Code
-        Label.TextSize = 11
-        Label.TextXAlignment = Enum.TextXAlignment.Left
-        Label.ZIndex = 20
-
-        local state = default
-
-        Box.MouseButton1Click:Connect(function()
-            state = not state
-            Box.BackgroundColor3 = state and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
-            if callback then callback(state) end
-            print("[SOLAR] Toggle: " .. text .. " = " .. tostring(state))
+        Item.MouseEnter:Connect(function()
+            Item.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
         end)
 
-        local result = {
-            _value = default,
-            SetValue = function(self, val)
-                self._value = val
-                state = val
-                Box.BackgroundColor3 = val and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
-                if callback then callback(val) end
-            end,
-            GetValue = function(self)
-                return state
-            end
-        }
-
-        return result
-    end
-
-    local primaryDrop = AddDropdown(AutoSection, "Primary", {
-        'None', 'Assault Rifle', 'Burst Rifle', 'Crossbow', 'Gunblade', 'RPG',
-        'Shotgun', 'Sniper', 'Energy Rifle', 'Flamethrower', 'Grenade Launcher',
-        'Minigun', 'Paintball Gun'
-    }, 'None')
-
-    local secondaryDrop = AddDropdown(AutoSection, "Secondary", {
-        'None', 'Handgun', 'Daggers', 'Flare Gun', 'Revolver', 'Shorty',
-        'Spray', 'Uzi', 'Energy Pistols', 'Exogun', 'Slingshot', 'Warper'
-    }, 'None')
-
-    local meleeDrop = AddDropdown(AutoSection, "Melee", {
-        'None', 'Knife', 'Scythe', 'Katana', 'Riot Shield', 'Fists',
-        'Battle Axe', 'Chainsaw', 'Trowel', 'Spear', 'Maul'
-    }, 'None')
-
-    local utilityDrop = AddDropdown(AutoSection, "Utility", {
-        'None', 'Grappler', 'Medkit', 'Subspace Tripmine', 'Warpstone',
-        'Flashbang', 'Freeze Ray', 'Grenade', 'Jump Pad', 'Molotov',
-        'Satchel', 'Smoke Grenade', 'War Horn', 'Elixir', 'RNG Dice'
-    }, 'None')
-
-    local autoEquipToggle = AddToggle(AutoSection, "Auto Equip", false)
-
-    Options = Options or {}
-    Options.AutoWeaponPrimary = primaryDrop
-    Options.AutoWeaponSecondary = secondaryDrop
-    Options.AutoWeaponMelee = meleeDrop
-    Options.AutoWeaponUtility = utilityDrop
-    Options.AutoEquip = autoEquipToggle
-
-    Toggles = Toggles or {}
-    Toggles.AutoEquip = autoEquipToggle
-
-    if MiscScroll and MiscScroll:FindFirstChild("UIListLayout") then
-        MiscScroll.CanvasSize = UDim2.new(0, 0, 0, MiscScroll.UIListLayout.AbsoluteContentSize.Y + 30)
-    end
-end)
-
-task.spawn(function()
-    repeat task.wait(0.5) until Tabs and Tabs["misc"] and Tabs["misc"].Right
-
-    local MiscRight = Tabs["misc"].Right
-    local MatchSection = _G.AddSection(MiscRight, "matchmaking")
-
-    local function AddDropdown(parent, label, options, default, callback)
-        local Row = Instance.new("Frame", parent)
-        Row.Size = UDim2.new(1, 0, 0, 35)
-        Row.BackgroundTransparency = 1
-        Row.ZIndex = 20
-
-        local Label = Instance.new("TextLabel", Row)
-        Label.Size = UDim2.new(0.5, 0, 1, 0)
-        Label.BackgroundTransparency = 1
-        Label.Text = label
-        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
-        Label.Font = Enum.Font.Code
-        Label.TextSize = 11
-        Label.TextXAlignment = Enum.TextXAlignment.Left
-        Label.ZIndex = 20
-
-        local DropBtn = Instance.new("TextButton", Row)
-        DropBtn.Size = UDim2.new(0.4, 0, 1, 0)
-        DropBtn.Position = UDim2.new(0.6, 0, 0, 0)
-        DropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-        DropBtn.BorderSizePixel = 1
-        DropBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
-        DropBtn.Text = default
-        DropBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-        DropBtn.TextSize = 11
-        DropBtn.Font = Enum.Font.Code
-        DropBtn.ZIndex = 20
-
-        local DropList = Instance.new("Frame", Row)
-        DropList.Size = UDim2.new(0.4, 0, 0, 0)
-        DropList.Position = UDim2.new(0.6, 0, 1, 2)
-        DropList.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-        DropList.BorderSizePixel = 1
-        DropList.BorderColor3 = Color3.fromRGB(40, 40, 40)
-        DropList.Visible = false
-        DropList.ClipsDescendants = true
-        DropList.ZIndex = 999
-        DropList.BackgroundTransparency = 0
-
-        local ListLayout = Instance.new("UIListLayout", DropList)
-        ListLayout.Padding = UDim.new(0, 1)
-
-        local isOpen = false
-        local selected = default
-
-        DropBtn.MouseButton1Click:Connect(function()
-            isOpen = not isOpen
-            DropList.Visible = isOpen
-            if isOpen then
-                DropList.Size = UDim2.new(0.4, 0, 0, math.min(#options * 23, 115))
-                DropList.ZIndex = 999
-            else
-                DropList.Size = UDim2.new(0.4, 0, 0, 0)
-            end
-        end)
-
-        for _, opt in ipairs(options) do
-            local Item = Instance.new("TextButton", DropList)
-            Item.Size = UDim2.new(1, 0, 0, 23)
+        Item.MouseLeave:Connect(function()
             Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-            Item.BackgroundTransparency = 0
-            Item.BorderSizePixel = 0
-            Item.Text = opt
-            Item.TextColor3 = Color3.fromRGB(200, 200, 200)
-            Item.TextSize = 11
-            Item.Font = Enum.Font.Code
-            Item.ZIndex = 999
-            Item.AutoButtonColor = false
-
-            Item.MouseEnter:Connect(function()
-                Item.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-            end)
-
-            Item.MouseLeave:Connect(function()
-                Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-            end)
-
-            Item.MouseButton1Click:Connect(function()
-                selected = opt
-                DropBtn.Text = opt
-                isOpen = false
-                DropList.Visible = false
-                DropList.Size = UDim2.new(0.4, 0, 0, 0)
-                if callback then callback(opt) end
-                print("[SOLAR] Selected: " .. label .. " = " .. opt)
-            end)
-        end
-
-        local result = {
-            _value = default,
-            SetValue = function(self, val)
-                self._value = val
-                DropBtn.Text = val
-                if callback then callback(val) end
-            end,
-            GetValue = function(self)
-                return self._value
-            end
-        }
-
-        return result
-    end
-
-    local function AddToggle(parent, text, default, callback)
-        local Row = Instance.new("Frame", parent)
-        Row.Size = UDim2.new(1, 0, 0, 22)
-        Row.BackgroundTransparency = 1
-        Row.ZIndex = 20
-
-        local Box = Instance.new("TextButton", Row)
-        Box.Size = UDim2.new(0, 12, 0, 12)
-        Box.Position = UDim2.new(0, 5, 0.5, -6)
-        Box.BorderSizePixel = 1
-        Box.BorderColor3 = Color3.fromRGB(60, 60, 60)
-        Box.Text = ""
-        Box.BackgroundColor3 = default and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
-        Box.ZIndex = 20
-
-        local Label = Instance.new("TextLabel", Row)
-        Label.Size = UDim2.new(1, -25, 1, 0)
-        Label.Position = UDim2.new(0, 22, 0, 0)
-        Label.BackgroundTransparency = 1
-        Label.Text = text
-        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
-        Label.Font = Enum.Font.Code
-        Label.TextSize = 11
-        Label.TextXAlignment = Enum.TextXAlignment.Left
-        Label.ZIndex = 20
-
-        local state = default
-
-        Box.MouseButton1Click:Connect(function()
-            state = not state
-            Box.BackgroundColor3 = state and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
-            if callback then callback(state) end
-            print("[SOLAR] Toggle: " .. text .. " = " .. tostring(state))
         end)
 
-        local result = {
-            _value = default,
-            SetValue = function(self, val)
-                self._value = val
-                state = val
-                Box.BackgroundColor3 = val and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
-                if callback then callback(val) end
-            end,
-            GetValue = function(self)
-                return state
-            end
-        }
-
-        return result
+        Item.MouseButton1Click:Connect(function()
+            selected = opt
+            DropBtn.Text = opt
+            isOpen = false
+            DropList.Visible = false
+            DropList.Size = UDim2.new(0.4, 0, 0, 0)
+            if callback then callback(opt) end
+            print("[SOLAR] Selected: " .. label .. " = " .. opt)
+        end)
     end
 
-    local matchDrop = AddDropdown(MatchSection, "Match Mode", {
-        '1v1', '2v2', '3v3', '4v4', '5v5', 'Rank 1v1', 'Rank 2v2', 'Rank 3v3'
-    }, '1v1')
+    return {
+        _value = default,
+        SetValue = function(self, val)
+            self._value = val
+            DropBtn.Text = val
+            if callback then callback(val) end
+        end,
+        GetValue = function(self)
+            return self._value
+        end
+    }
+end
 
-    local autoMatchToggle = AddToggle(MatchSection, "Auto Matchmaking", false)
+local function AddToggle(parent, text, default, callback)
+    local Row = Instance.new("Frame", parent)
+    Row.Size = UDim2.new(1, 0, 0, 22)
+    Row.BackgroundTransparency = 1
+    Row.ZIndex = 50
 
-    Options.AutoMatchMode = matchDrop
-    Options.AutoMatch = autoMatchToggle
-    Toggles.AutoMatch = autoMatchToggle
+    local Box = Instance.new("TextButton", Row)
+    Box.Size = UDim2.new(0, 12, 0, 12)
+    Box.Position = UDim2.new(0, 5, 0.5, -6)
+    Box.BorderSizePixel = 1
+    Box.BorderColor3 = Color3.fromRGB(60, 60, 60)
+    Box.Text = ""
+    Box.BackgroundColor3 = default and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+    Box.ZIndex = 50
 
-    if MiscRight and MiscRight:FindFirstChild("UIListLayout") then
-        MiscRight.CanvasSize = UDim2.new(0, 0, 0, MiscRight.UIListLayout.AbsoluteContentSize.Y + 30)
-    end
-end)
+    local Label = Instance.new("TextLabel", Row)
+    Label.Size = UDim2.new(1, -25, 1, 0)
+    Label.Position = UDim2.new(0, 22, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Label.Font = Enum.Font.Code
+    Label.TextSize = 11
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.ZIndex = 50
 
+    local state = default
+
+    Box.MouseButton1Click:Connect(function()
+        state = not state
+        Box.BackgroundColor3 = state and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+        if callback then callback(state) end
+        print("[SOLAR] Toggle: " .. text .. " = " .. tostring(state))
+    end)
+
+    return {
+        _value = default,
+        SetValue = function(self, val)
+            self._value = val
+            state = val
+            Box.BackgroundColor3 = val and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+            if callback then callback(val) end
+        end,
+        GetValue = function(self)
+            return state
+        end
+    }
+end
+
+Options = Options or {}
+Toggles = Toggles or {}
+
+-- AUTO EQUIP (왼쪽)
+local AutoSection = _G.AddSection(Tabs["misc"].Left, "auto equip")
+
+local primaryDrop = AddDropdown(AutoSection, "Primary", {
+    'None', 'Assault Rifle', 'Burst Rifle', 'Crossbow', 'Gunblade', 'RPG',
+    'Shotgun', 'Sniper', 'Energy Rifle', 'Flamethrower', 'Grenade Launcher',
+    'Minigun', 'Paintball Gun'
+}, 'None')
+
+local secondaryDrop = AddDropdown(AutoSection, "Secondary", {
+    'None', 'Handgun', 'Daggers', 'Flare Gun', 'Revolver', 'Shorty',
+    'Spray', 'Uzi', 'Energy Pistols', 'Exogun', 'Slingshot', 'Warper'
+}, 'None')
+
+local meleeDrop = AddDropdown(AutoSection, "Melee", {
+    'None', 'Knife', 'Scythe', 'Katana', 'Riot Shield', 'Fists',
+    'Battle Axe', 'Chainsaw', 'Trowel', 'Spear', 'Maul'
+}, 'None')
+
+local utilityDrop = AddDropdown(AutoSection, "Utility", {
+    'None', 'Grappler', 'Medkit', 'Subspace Tripmine', 'Warpstone',
+    'Flashbang', 'Freeze Ray', 'Grenade', 'Jump Pad', 'Molotov',
+    'Satchel', 'Smoke Grenade', 'War Horn', 'Elixir', 'RNG Dice'
+}, 'None')
+
+local autoEquipToggle = AddToggle(AutoSection, "Auto Equip", false)
+
+Options.AutoWeaponPrimary = primaryDrop
+Options.AutoWeaponSecondary = secondaryDrop
+Options.AutoWeaponMelee = meleeDrop
+Options.AutoWeaponUtility = utilityDrop
+Options.AutoEquip = autoEquipToggle
+Toggles.AutoEquip = autoEquipToggle
+
+-- MATCHMAKING (오른쪽)
+local MatchSection = _G.AddSection(Tabs["misc"].Right, "matchmaking")
+
+local matchDrop = AddDropdown(MatchSection, "Match Mode", {
+    '1v1', '2v2', '3v3', '4v4', '5v5', 'Rank 1v1', 'Rank 2v2', 'Rank 3v3'
+}, '1v1')
+
+local autoMatchToggle = AddToggle(MatchSection, "Auto Matchmaking", false)
+
+Options.AutoMatchMode = matchDrop
+Options.AutoMatch = autoMatchToggle
+Toggles.AutoMatch = autoMatchToggle
+
+-- CONFIG (SETTINGS 오른쪽)
+local ConfigSection = _G.AddSection(Tabs["setting"].Right, "config")
+
+local ConfigNameBox = Instance.new("TextBox")
+ConfigNameBox.Parent = ConfigSection
+ConfigNameBox.Size = UDim2.new(1, -10, 0, 30)
+ConfigNameBox.Position = UDim2.new(0, 5, 0, 5)
+ConfigNameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+ConfigNameBox.BorderSizePixel = 0
+ConfigNameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigNameBox.TextSize = 14
+ConfigNameBox.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigNameBox.PlaceholderText = "Config Name..."
+ConfigNameBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 170)
+ConfigNameBox.TextXAlignment = Enum.TextXAlignment.Center
+ConfigNameBox.ClearTextOnFocus = false
+
+local ConfigCorner = Instance.new("UICorner")
+ConfigCorner.CornerRadius = UDim.new(0, 6)
+ConfigCorner.Parent = ConfigNameBox
+
+local ConfigSaveBtn = Instance.new("TextButton")
+ConfigSaveBtn.Parent = ConfigSection
+ConfigSaveBtn.Size = UDim2.new(1, -10, 0, 30)
+ConfigSaveBtn.Position = UDim2.new(0, 5, 0, 40)
+ConfigSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 80, 200)
+ConfigSaveBtn.BorderSizePixel = 0
+ConfigSaveBtn.Text = "Save Config"
+ConfigSaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigSaveBtn.TextSize = 14
+ConfigSaveBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigSaveBtn.AutoButtonColor = false
+
+local ConfigSaveCorner = Instance.new("UICorner")
+ConfigSaveCorner.CornerRadius = UDim.new(0, 6)
+ConfigSaveCorner.Parent = ConfigSaveBtn
+
+local ConfigListFrame = Instance.new("Frame")
+ConfigListFrame.Parent = ConfigSection
+ConfigListFrame.Size = UDim2.new(1, -10, 0, 120)
+ConfigListFrame.Position = UDim2.new(0, 5, 0, 80)
+ConfigListFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+ConfigListFrame.BackgroundTransparency = 0.5
+ConfigListFrame.BorderSizePixel = 0
+
+local ConfigListCorner = Instance.new("UICorner")
+ConfigListCorner.CornerRadius = UDim.new(0, 6)
+ConfigListCorner.Parent = ConfigListFrame
+
+local ConfigListLayout = Instance.new("UIListLayout")
+ConfigListLayout.Parent = ConfigListFrame
+ConfigListLayout.Padding = UDim.new(0, 4)
+ConfigListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local ConfigLoadBtn = Instance.new("TextButton")
+ConfigLoadBtn.Parent = ConfigSection
+ConfigLoadBtn.Size = UDim2.new(1, -10, 0, 28)
+ConfigLoadBtn.Position = UDim2.new(0, 5, 0, 208)
+ConfigLoadBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+ConfigLoadBtn.BorderSizePixel = 0
+ConfigLoadBtn.Text = "Load Selected Config"
+ConfigLoadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigLoadBtn.TextSize = 13
+ConfigLoadBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigLoadBtn.AutoButtonColor = false
+
+local ConfigLoadCorner = Instance.new("UICorner")
+ConfigLoadCorner.CornerRadius = UDim.new(0, 6)
+ConfigLoadCorner.Parent = ConfigLoadBtn
+
+local ConfigAutoLabel = Instance.new("TextLabel")
+ConfigAutoLabel.Parent = ConfigSection
+ConfigAutoLabel.Size = UDim2.new(1, -10, 0, 18)
+ConfigAutoLabel.Position = UDim2.new(0, 5, 0, 242)
+ConfigAutoLabel.BackgroundTransparency = 1
+ConfigAutoLabel.Text = "Auto Load: None"
+ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+ConfigAutoLabel.TextSize = 12
+ConfigAutoLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigAutoLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local ConfigAutoBtn = Instance.new("TextButton")
+ConfigAutoBtn.Parent = ConfigSection
+ConfigAutoBtn.Size = UDim2.new(1, -10, 0, 28)
+ConfigAutoBtn.Position = UDim2.new(0, 5, 0, 265)
+ConfigAutoBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
+ConfigAutoBtn.BorderSizePixel = 0
+ConfigAutoBtn.Text = "Set Auto Load"
+ConfigAutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigAutoBtn.TextSize = 13
+ConfigAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigAutoBtn.AutoButtonColor = false
+
+local ConfigAutoCorner = Instance.new("UICorner")
+ConfigAutoCorner.CornerRadius = UDim.new(0, 6)
+ConfigAutoCorner.Parent = ConfigAutoBtn
+
+local ConfigCancelAutoBtn = Instance.new("TextButton")
+ConfigCancelAutoBtn.Parent = ConfigSection
+ConfigCancelAutoBtn.Size = UDim2.new(1, -10, 0, 28)
+ConfigCancelAutoBtn.Position = UDim2.new(0, 5, 0, 298)
+ConfigCancelAutoBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+ConfigCancelAutoBtn.BorderSizePixel = 0
+ConfigCancelAutoBtn.Text = "Cancel Auto Load"
+ConfigCancelAutoBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
+ConfigCancelAutoBtn.TextSize = 13
+ConfigCancelAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+ConfigCancelAutoBtn.AutoButtonColor = false
+
+local ConfigCancelCorner = Instance.new("UICorner")
+ConfigCancelCorner.CornerRadius = UDim.new(0, 6)
+ConfigCancelCorner.Parent = ConfigCancelAutoBtn
+
+-- UI 리사이징
+if Tabs["misc"].Left and Tabs["misc"].Left:FindFirstChild("UIListLayout") then
+    Tabs["misc"].Left.CanvasSize = UDim2.new(0, 0, 0, Tabs["misc"].Left.UIListLayout.AbsoluteContentSize.Y + 30)
+end
+
+if Tabs["misc"].Right and Tabs["misc"].Right:FindFirstChild("UIListLayout") then
+    Tabs["misc"].Right.CanvasSize = UDim2.new(0, 0, 0, Tabs["misc"].Right.UIListLayout.AbsoluteContentSize.Y + 30)
+end
+
+if Tabs["setting"].Right and Tabs["setting"].Right:FindFirstChild("UIListLayout") then
+    Tabs["setting"].Right.CanvasSize = UDim2.new(0, 0, 0, Tabs["setting"].Right.UIListLayout.AbsoluteContentSize.Y + 30)
+end
+
+-- AUTO EQUIP ENGINE
 task.spawn(function()
     local function AutoEquipWeapon(weaponName)
         if not weaponName or weaponName == "None" then return false end
@@ -2107,6 +2069,7 @@ task.spawn(function()
     end
 end)
 
+-- AUTO MATCH ENGINE
 task.spawn(function()
     local function StartAutoMatch()
         local mode = Options.AutoMatchMode and Options.AutoMatchMode.GetValue and Options.AutoMatchMode:GetValue() or "1v1"
@@ -2140,309 +2103,266 @@ task.spawn(function()
     end
 end)
 
-task.spawn(function()
-    repeat task.wait(0.5) until Tabs and Tabs["setting"] and Tabs["setting"].Right
+-- CONFIG ENGINE
+local Configs = {}
+local SelectedConfig = nil
+local AutoLoadConfig = nil
+local ConfigFolder = "SOLARHub/Configs"
 
-    local ConfigScroll = Tabs["setting"].Right
-    local ConfigSection = _G.AddSection(ConfigScroll, "config")
+if not isfolder(ConfigFolder) then
+    makefolder(ConfigFolder)
+end
 
-    local ConfigNameBox = Instance.new("TextBox")
-    ConfigNameBox.Parent = ConfigSection
-    ConfigNameBox.Size = UDim2.new(1, -10, 0, 30)
-    ConfigNameBox.Position = UDim2.new(0, 5, 0, 5)
-    ConfigNameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    ConfigNameBox.BorderSizePixel = 0
-    ConfigNameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ConfigNameBox.TextSize = 14
-    ConfigNameBox.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
-    ConfigNameBox.PlaceholderText = "Config Name..."
-    ConfigNameBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 170)
-    ConfigNameBox.TextXAlignment = Enum.TextXAlignment.Center
-    ConfigNameBox.ClearTextOnFocus = false
+local function GetConfigPath(name)
+    return ConfigFolder .. "/" .. name .. ".json"
+end
 
-    local ConfigCorner = Instance.new("UICorner")
-    ConfigCorner.CornerRadius = UDim.new(0, 6)
-    ConfigCorner.Parent = ConfigNameBox
+local function GetAllConfigs()
+    local result = {}
+    if isfolder(ConfigFolder) then
+        for _, file in ipairs(listfiles(ConfigFolder)) do
+            local name = file:match("([^/]+)%.json$")
+            if name then
+                table.insert(result, name)
+            end
+        end
+    end
+    return result
+end
 
-    local ConfigSaveBtn = Instance.new("TextButton")
-    ConfigSaveBtn.Parent = ConfigSection
-    ConfigSaveBtn.Size = UDim2.new(1, -10, 0, 30)
-    ConfigSaveBtn.Position = UDim2.new(0, 5, 0, 40)
-    ConfigSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 80, 200)
-    ConfigSaveBtn.BorderSizePixel = 0
-    ConfigSaveBtn.Text = "Save Config"
-    ConfigSaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ConfigSaveBtn.TextSize = 14
-    ConfigSaveBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
-    ConfigSaveBtn.AutoButtonColor = false
+local function SaveAllSettings()
+    local settings = {}
+    for key, value in pairs(_G.SOLARSettings or {}) do
+        settings[key] = value
+    end
+    return settings
+end
 
-    local ConfigSaveCorner = Instance.new("UICorner")
-    ConfigSaveCorner.CornerRadius = UDim.new(0, 6)
-    ConfigSaveCorner.Parent = ConfigSaveBtn
+local function LoadAllSettings(data)
+    for key, value in pairs(data) do
+        if _G.SOLARSettings then
+            _G.SOLARSettings[key] = value
+        end
+        if Toggles and Toggles[key] then
+            Toggles[key]:SetValue(value)
+        end
+        if Options and Options[key] then
+            Options[key]:SetValue(value)
+        end
+    end
+end
 
-    local ConfigListFrame = Instance.new("Frame")
-    ConfigListFrame.Parent = ConfigSection
-    ConfigListFrame.Size = UDim2.new(1, -10, 0, 120)
-    ConfigListFrame.Position = UDim2.new(0, 5, 0, 80)
-    ConfigListFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    ConfigListFrame.BackgroundTransparency = 0.5
-    ConfigListFrame.BorderSizePixel = 0
-
-    local ConfigListCorner = Instance.new("UICorner")
-    ConfigListCorner.CornerRadius = UDim.new(0, 6)
-    ConfigListCorner.Parent = ConfigListFrame
-
-    local ConfigListLayout = Instance.new("UIListLayout")
-    ConfigListLayout.Parent = ConfigListFrame
-    ConfigListLayout.Padding = UDim.new(0, 4)
-    ConfigListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-    local ConfigLoadBtn = Instance.new("TextButton")
-    ConfigLoadBtn.Parent = ConfigSection
-    ConfigLoadBtn.Size = UDim2.new(1, -10, 0, 28)
-    ConfigLoadBtn.Position = UDim2.new(0, 5, 0, 208)
-    ConfigLoadBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    ConfigLoadBtn.BorderSizePixel = 0
-    ConfigLoadBtn.Text = "Load Selected Config"
-    ConfigLoadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ConfigLoadBtn.TextSize = 13
-    ConfigLoadBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
-    ConfigLoadBtn.AutoButtonColor = false
-
-    local ConfigLoadCorner = Instance.new("UICorner")
-    ConfigLoadCorner.CornerRadius = UDim.new(0, 6)
-    ConfigLoadCorner.Parent = ConfigLoadBtn
-
-    local ConfigAutoLabel = Instance.new("TextLabel")
-    ConfigAutoLabel.Parent = ConfigSection
-    ConfigAutoLabel.Size = UDim2.new(1, -10, 0, 18)
-    ConfigAutoLabel.Position = UDim2.new(0, 5, 0, 242)
-    ConfigAutoLabel.BackgroundTransparency = 1
-    ConfigAutoLabel.Text = "Auto Load: None"
-    ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
-    ConfigAutoLabel.TextSize = 12
-    ConfigAutoLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
-    ConfigAutoLabel.TextXAlignment = Enum.TextXAlignment.Center
-
-    local ConfigAutoBtn = Instance.new("TextButton")
-    ConfigAutoBtn.Parent = ConfigSection
-    ConfigAutoBtn.Size = UDim2.new(1, -10, 0, 28)
-    ConfigAutoBtn.Position = UDim2.new(0, 5, 0, 265)
-    ConfigAutoBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 100)
-    ConfigAutoBtn.BorderSizePixel = 0
-    ConfigAutoBtn.Text = "Set Auto Load"
-    ConfigAutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ConfigAutoBtn.TextSize = 13
-    ConfigAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
-    ConfigAutoBtn.AutoButtonColor = false
-
-    local ConfigAutoCorner = Instance.new("UICorner")
-    ConfigAutoCorner.CornerRadius = UDim.new(0, 6)
-    ConfigAutoCorner.Parent = ConfigAutoBtn
-
-    local ConfigCancelAutoBtn = Instance.new("TextButton")
-    ConfigCancelAutoBtn.Parent = ConfigSection
-    ConfigCancelAutoBtn.Size = UDim2.new(1, -10, 0, 28)
-    ConfigCancelAutoBtn.Position = UDim2.new(0, 5, 0, 298)
-    ConfigCancelAutoBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
-    ConfigCancelAutoBtn.BorderSizePixel = 0
-    ConfigCancelAutoBtn.Text = "Cancel Auto Load"
-    ConfigCancelAutoBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
-    ConfigCancelAutoBtn.TextSize = 13
-    ConfigCancelAutoBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
-    ConfigCancelAutoBtn.AutoButtonColor = false
-
-    local ConfigCancelCorner = Instance.new("UICorner")
-    ConfigCancelCorner.CornerRadius = UDim.new(0, 6)
-    ConfigCancelCorner.Parent = ConfigCancelAutoBtn
-
-    local Configs = {}
-    local SelectedConfig = nil
-    local AutoLoadConfig = nil
-    local ConfigFolder = "SOLARHub/Configs"
-
-    if not isfolder(ConfigFolder) then
-        makefolder(ConfigFolder)
+local function RefreshConfigList()
+    for _, child in ipairs(ConfigListFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
     end
 
-    local function GetConfigPath(name)
-        return ConfigFolder .. "/" .. name .. ".json"
-    end
+    Configs = GetAllConfigs()
+    local LayoutOrder = 0
 
-    local function GetAllConfigs()
-        local result = {}
-        if isfolder(ConfigFolder) then
-            for _, file in ipairs(listfiles(ConfigFolder)) do
-                local name = file:match("([^/]+)%.json$")
-                if name then
-                    table.insert(result, name)
+    for _, name in ipairs(Configs) do
+        LayoutOrder = LayoutOrder + 1
+        local btn = Instance.new("TextButton")
+        btn.Parent = ConfigListFrame
+        btn.Size = UDim2.new(1, -10, 0, 24)
+        btn.Position = UDim2.new(0, 5, 0, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        btn.BackgroundTransparency = 0.5
+        btn.BorderSizePixel = 0
+        btn.Text = name
+        btn.TextColor3 = Color3.fromRGB(200, 200, 220)
+        btn.TextSize = 13
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.TextTruncate = Enum.TextTruncate.AtEnd
+        btn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+        btn.AutoButtonColor = false
+        btn.LayoutOrder = LayoutOrder
+
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = btn
+
+        if name == SelectedConfig then
+            btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+            btn.BackgroundTransparency = 0.3
+        end
+
+        btn.MouseButton1Click:Connect(function()
+            SelectedConfig = name
+            for _, child in ipairs(ConfigListFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+                    child.BackgroundTransparency = 0.5
                 end
             end
-        end
-        return result
-    end
-
-    local function SaveAllSettings()
-        local settings = {}
-        for key, value in pairs(_G.SOLARSettings or {}) do
-            settings[key] = value
-        end
-        return settings
-    end
-
-    local function LoadAllSettings(data)
-        for key, value in pairs(data) do
-            if _G.SOLARSettings then
-                _G.SOLARSettings[key] = value
-            end
-            if Toggles and Toggles[key] then
-                Toggles[key]:SetValue(value)
-            end
-            if Options and Options[key] then
-                Options[key]:SetValue(value)
-            end
-        end
-    end
-
-    local function RefreshConfigList()
-        for _, child in ipairs(ConfigListFrame:GetChildren()) do
-            if child:IsA("TextButton") then
-                child:Destroy()
-            end
-        end
-
-        Configs = GetAllConfigs()
-        local LayoutOrder = 0
-
-        for _, name in ipairs(Configs) do
-            LayoutOrder = LayoutOrder + 1
-            local btn = Instance.new("TextButton")
-            btn.Parent = ConfigListFrame
-            btn.Size = UDim2.new(1, -10, 0, 24)
-            btn.Position = UDim2.new(0, 5, 0, 0)
-            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-            btn.BackgroundTransparency = 0.5
-            btn.BorderSizePixel = 0
-            btn.Text = name
-            btn.TextColor3 = Color3.fromRGB(200, 200, 220)
-            btn.TextSize = 13
-            btn.TextXAlignment = Enum.TextXAlignment.Left
-            btn.TextTruncate = Enum.TextTruncate.AtEnd
-            btn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
-            btn.AutoButtonColor = false
-            btn.LayoutOrder = LayoutOrder
-
-            local btnCorner = Instance.new("UICorner")
-            btnCorner.CornerRadius = UDim.new(0, 4)
-            btnCorner.Parent = btn
-
-            if name == SelectedConfig then
-                btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
-                btn.BackgroundTransparency = 0.3
-            end
-
-            btn.MouseButton1Click:Connect(function()
-                SelectedConfig = name
-                for _, child in ipairs(ConfigListFrame:GetChildren()) do
-                    if child:IsA("TextButton") then
-                        child.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-                        child.BackgroundTransparency = 0.5
-                    end
-                end
-                btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
-                btn.BackgroundTransparency = 0.3
-            end)
-
-            btn.MouseEnter:Connect(function()
-                if btn.BackgroundTransparency > 0.3 then
-                    btn.BackgroundTransparency = 0.3
-                end
-            end)
-
-            btn.MouseLeave:Connect(function()
-                if SelectedConfig ~= name then
-                    btn.BackgroundTransparency = 0.5
-                end
-            end)
-        end
-    end
-
-    ConfigSaveBtn.MouseButton1Click:Connect(function()
-        local name = ConfigNameBox.Text:gsub("%s+", "_")
-        if name == "" or name == "Config_Name..." then
-            print("[SOLAR] Please enter a config name!")
-            return
-        end
-
-        local path = GetConfigPath(name)
-        local data = SaveAllSettings()
-        data._config_name = name
-        data._timestamp = os.time()
-
-        local success, err = pcall(function()
-            writefile(path, game:GetService("HttpService"):JSONEncode(data))
+            btn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+            btn.BackgroundTransparency = 0.3
         end)
 
-        if success then
-            print("[SOLAR] Config '" .. name .. "' saved!")
-            ConfigNameBox.Text = ""
-            RefreshConfigList()
-        else
-            warn("[SOLAR] Failed to save: " .. tostring(err))
-        end
+        btn.MouseEnter:Connect(function()
+            if btn.BackgroundTransparency > 0.3 then
+                btn.BackgroundTransparency = 0.3
+            end
+        end)
+
+        btn.MouseLeave:Connect(function()
+            if SelectedConfig ~= name then
+                btn.BackgroundTransparency = 0.5
+            end
+        end)
+    end
+end
+
+ConfigSaveBtn.MouseButton1Click:Connect(function()
+    local name = ConfigNameBox.Text:gsub("%s+", "_")
+    if name == "" or name == "Config_Name..." then
+        print("[SOLAR] Please enter a config name!")
+        return
+    end
+
+    local path = GetConfigPath(name)
+    local data = SaveAllSettings()
+    data._config_name = name
+    data._timestamp = os.time()
+
+    local success, err = pcall(function()
+        writefile(path, game:GetService("HttpService"):JSONEncode(data))
     end)
 
-    ConfigLoadBtn.MouseButton1Click:Connect(function()
-        if not SelectedConfig then
-            print("[SOLAR] Please select a config first!")
-            return
-        end
+    if success then
+        print("[SOLAR] Config '" .. name .. "' saved!")
+        ConfigNameBox.Text = ""
+        RefreshConfigList()
+    else
+        warn("[SOLAR] Failed to save: " .. tostring(err))
+    end
+end)
 
-        local path = GetConfigPath(SelectedConfig)
-        if not isfile(path) then
-            print("[SOLAR] Config file not found!")
-            RefreshConfigList()
-            return
-        end
+ConfigLoadBtn.MouseButton1Click:Connect(function()
+    if not SelectedConfig then
+        print("[SOLAR] Please select a config first!")
+        return
+    end
+
+    local path = GetConfigPath(SelectedConfig)
+    if not isfile(path) then
+        print("[SOLAR] Config file not found!")
+        RefreshConfigList()
+        return
+    end
+
+    local success, data = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(readfile(path))
+    end)
+
+    if success and data then
+        LoadAllSettings(data)
+        print("[SOLAR] Config '" .. SelectedConfig .. "' loaded!")
+    else
+        print("[SOLAR] Failed to load config!")
+    end
+end)
+
+ConfigAutoBtn.MouseButton1Click:Connect(function()
+    if not SelectedConfig then
+        print("[SOLAR] Please select a config first!")
+        return
+    end
+
+    AutoLoadConfig = SelectedConfig
+    ConfigAutoLabel.Text = "Auto Load: " .. AutoLoadConfig
+    ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+    writefile(ConfigFolder .. "/autoload.txt", AutoLoadConfig)
+    print("[SOLAR] Auto Load set to: " .. AutoLoadConfig)
+end)
+
+ConfigCancelAutoBtn.MouseButton1Click:Connect(function()
+    AutoLoadConfig = nil
+    ConfigAutoLabel.Text = "Auto Load: None"
+    ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+    if isfile(ConfigFolder .. "/autoload.txt") then
+        delfile(ConfigFolder .. "/autoload.txt")
+    end
+    print("[SOLAR] Auto Load cancelled")
+end)
+
+if isfile(ConfigFolder .. "/autoload.txt") then
+    local name = readfile(ConfigFolder .. "/autoload.txt")
+    if name ~= "" and isfile(GetConfigPath(name)) then
+        AutoLoadConfig = name
+        ConfigAutoLabel.Text = "Auto Load: " .. name
+        ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
 
         local success, data = pcall(function()
-            return game:GetService("HttpService"):JSONDecode(readfile(path)))
+            return game:GetService("HttpService"):JSONDecode(readfile(GetConfigPath(name)))
         end)
 
         if success and data then
             LoadAllSettings(data)
-            print("[SOLAR] Config '" .. SelectedConfig .. "' loaded!")
-        else
-            print("[SOLAR] Failed to load config!")
+            print("[SOLAR] Auto Loaded: " .. name)
         end
-    end)
-
-    ConfigAutoBtn.MouseButton1Click:Connect(function()
-        if not SelectedConfig then
-            print("[SOLAR] Please select a config first!")
-            return
-        end
-
-        AutoLoadConfig = SelectedConfig
-        ConfigAutoLabel.Text = "Auto Load: " .. AutoLoadConfig
-        ConfigAutoLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
-        writefile(ConfigFolder .. "/autoload.txt", AutoLoadConfig)
-        print("[SOLAR] Auto Load set to: " .. AutoLoadConfig)
-    end)
-
-    ConfigCancelAutoBtn.MouseButton1Click:Connect(function()
-        AutoLoadConfig = nil
+    else
         ConfigAutoLabel.Text = "Auto Load: None"
         ConfigAutoLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
-        if isfile(ConfigFolder .. "/autoload.txt") then
-            delfile(ConfigFolder .. "/autoload.txt")
-        end
-        print("[SOLAR] Auto Load cancelled")
-    end)
+    end
+end
 
-    if isfile(ConfigFolder .. "/autoload.txt") then
-        local name = readfile(ConfigFolder .. "/autoload.txt")
-        if name ~= "" and isfile(GetConfigPath(name)) then
-            AutoLoadConfig = name
-            ConfigAutoLabel.Text = "Auto Load: " .. name
-            ConfigAutoLabel.TextColor3 = Color3.fromRGB(
+RefreshConfigList()
+
+_G.SOLARSettings = {}
+
+local settingKeys = {
+    'AutoWeaponPrimary', 'AutoWeaponSecondary', 'AutoWeaponMelee', 'AutoWeaponUtility',
+    'AutoEquip', 'AutoMatch', 'AutoMatchMode'
+}
+
+for _, key in ipairs(settingKeys) do
+    _G.SOLARSettings[key] = nil
+end
+
+for key, toggle in pairs(Toggles or {}) do
+    _G.SOLARSettings[key] = toggle.GetValue and toggle:GetValue() or toggle.Value
+end
+
+for key, option in pairs(Options or {}) do
+    _G.SOLARSettings[key] = option.GetValue and option:GetValue() or option.Value
+end
+
+local function UpdateSettings()
+    for key, toggle in pairs(Toggles or {}) do
+        _G.SOLARSettings[key] = toggle.GetValue and toggle:GetValue() or toggle.Value
+    end
+    for key, option in pairs(Options or {}) do
+        _G.SOLARSettings[key] = option.GetValue and option:GetValue() or option.Value
+    end
+end
+
+for key, toggle in pairs(Toggles or {}) do
+    if toggle.SetValue then
+        local oldSet = toggle.SetValue
+        toggle.SetValue = function(self, val)
+            oldSet(self, val)
+            _G.SOLARSettings[key] = val
+        end
+    end
+end
+
+for key, option in pairs(Options or {}) do
+    if option.SetValue then
+        local oldSet = option.SetValue
+        option.SetValue = function(self, val)
+            oldSet(self, val)
+            _G.SOLARSettings[key] = val
+        end
+    end
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        UpdateSettings()
+    end
+end)
+
+print("✅ SOLAR HUB - AUTO & CONFIG SYSTEM LOADED!")

@@ -1846,3 +1846,129 @@ task.spawn(function()
         end)
     end
 end)
+            Item.MouseLeave:Connect(function()
+                Item.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+            end)
+
+            Item.MouseButton1Click:Connect(function()
+                selected = opt
+                DropBtn.Text = opt
+                isOpen = false
+                DropList.Visible = false
+                DropList.Size = UDim2.new(0.4, 0, 0, 0)
+                if callback then callback(opt) end
+            end)
+        end
+
+        return {
+            _value = default,
+            SetValue = function(self, val)
+                self._value = val
+                DropBtn.Text = val
+                if callback then callback(val) end
+            end,
+            GetValue = function(self)
+                return self._value
+            end
+        }
+    end
+
+    local function AddToggle(parent, text, default, callback)
+        local Row = Instance.new("Frame", parent)
+        Row.Size = UDim2.new(1, 0, 0, 22)
+        Row.BackgroundTransparency = 1
+        Row.ZIndex = 20
+
+        local Box = Instance.new("TextButton", Row)
+        Box.Size = UDim2.new(0, 12, 0, 12)
+        Box.Position = UDim2.new(0, 5, 0.5, -6)
+        Box.BorderSizePixel = 1
+        Box.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        Box.Text = ""
+        Box.BackgroundColor3 = default and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+        Box.ZIndex = 20
+
+        local Label = Instance.new("TextLabel", Row)
+        Label.Size = UDim2.new(1, -25, 1, 0)
+        Label.Position = UDim2.new(0, 22, 0, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = text
+        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
+        Label.Font = Enum.Font.Code
+        Label.TextSize = 11
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.ZIndex = 20
+
+        local state = default
+
+        Box.MouseButton1Click:Connect(function()
+            state = not state
+            Box.BackgroundColor3 = state and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+            if callback then callback(state) end
+        end)
+
+        return {
+            _value = default,
+            SetValue = function(self, val)
+                self._value = val
+                state = val
+                Box.BackgroundColor3 = val and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+                if callback then callback(val) end
+            end,
+            GetValue = function(self)
+                return state
+            end
+        }
+    end
+
+    local matchDrop = AddDropdown(QueueSection, "Match Mode", {
+        "1v1", "2v2", "3v3", "4v4", "5v5",
+        "Rank 1v1", "Rank 2v2", "Rank 3v3"
+    }, "1v1")
+
+    local autoQueueToggle = AddToggle(QueueSection, "Auto Queue", false)
+
+    Options = Options or {}
+    Options.QueueMode = matchDrop
+    Options.AutoQueue = autoQueueToggle
+
+    Toggles = Toggles or {}
+    Toggles.AutoQueue = autoQueueToggle
+
+    if MiscScroll and MiscScroll:FindFirstChild("UIListLayout") then
+        MiscScroll.CanvasSize = UDim2.new(0, 0, 0, MiscScroll.UIListLayout.AbsoluteContentSize.Y + 30)
+    end
+end)
+
+task.spawn(function()
+    local function StartMatch(mode)
+        local players = tonumber(mode:match("(%d+)v%d+")) or 1
+        local isRank = mode:find("Rank") and true or false
+
+        local gamemode = isRank and "Ranked" or "Casual"
+        local teamSize = isRank and math.min(players, 3) or players
+
+        local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+        if not remotes then return end
+
+        local matchRemote = remotes:FindFirstChild("Matchmaking")
+        if matchRemote then
+            local args = {gamemode, teamSize}
+            if isRank then
+                table.insert(args, "Ranked")
+            end
+            pcall(function()
+                matchRemote:FireServer(unpack(args))
+            end)
+        end
+    end
+
+    while task.wait(10) do
+        pcall(function()
+            if Toggles.AutoQueue and Toggles.AutoQueue.GetValue and Toggles.AutoQueue:GetValue() then
+                local mode = Options.QueueMode and Options.QueueMode.GetValue and Options.QueueMode:GetValue() or "1v1"
+                StartMatch(mode)
+            end
+        end)
+    end
+end)

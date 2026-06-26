@@ -1641,3 +1641,237 @@ task.spawn(function()
         scroll.CanvasSize = UDim2.new(0, 0, 0, scroll.UIListLayout.AbsoluteContentSize.Y + 40)
     end
 end)
+task.spawn(function()
+    repeat task.wait(0.5) until Tabs and Tabs["character"] and Tabs["character"].Left
+
+    local CharScroll = Tabs["character"].Left
+    local CharSection = _G.AddSection(CharScroll, "character stats")
+
+    local function AddToggle(parent, text, default, callback)
+        local Row = Instance.new("Frame", parent)
+        Row.Size = UDim2.new(1, 0, 0, 22)
+        Row.BackgroundTransparency = 1
+        Row.ZIndex = 20
+
+        local Box = Instance.new("TextButton", Row)
+        Box.Size = UDim2.new(0, 12, 0, 12)
+        Box.Position = UDim2.new(0, 5, 0.5, -6)
+        Box.BorderSizePixel = 1
+        Box.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        Box.Text = ""
+        Box.BackgroundColor3 = default and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+        Box.ZIndex = 20
+
+        local Label = Instance.new("TextLabel", Row)
+        Label.Size = UDim2.new(1, -25, 1, 0)
+        Label.Position = UDim2.new(0, 22, 0, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = text
+        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
+        Label.Font = Enum.Font.Code
+        Label.TextSize = 11
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.ZIndex = 20
+
+        local state = default
+
+        Box.MouseButton1Click:Connect(function()
+            state = not state
+            Box.BackgroundColor3 = state and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+            if callback then callback(state) end
+        end)
+
+        return {
+            _value = default,
+            SetValue = function(self, val)
+                self._value = val
+                state = val
+                Box.BackgroundColor3 = val and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(14, 14, 14)
+                if callback then callback(val) end
+            end,
+            GetValue = function(self)
+                return state
+            end
+        }
+    end
+
+    local function AddSlider(parent, text, min, max, default, callback)
+        local SliderRow = Instance.new("Frame", parent)
+        SliderRow.Size = UDim2.new(1, 0, 0, 32)
+        SliderRow.BackgroundTransparency = 1
+        SliderRow.ZIndex = 20
+
+        local Label = Instance.new("TextLabel", SliderRow)
+        Label.Size = UDim2.new(1, 0, 0, 14)
+        Label.Position = UDim2.new(0, 5, 0, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = text
+        Label.TextColor3 = Color3.fromRGB(180, 180, 180)
+        Label.Font = Enum.Font.Code
+        Label.TextSize = 11
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.ZIndex = 20
+
+        local ValueLabel = Instance.new("TextLabel", SliderRow)
+        ValueLabel.Size = UDim2.new(1, -10, 0, 14)
+        ValueLabel.Position = UDim2.new(0, 0, 0, 0)
+        ValueLabel.BackgroundTransparency = 1
+        ValueLabel.Text = default .. " / " .. max
+        ValueLabel.TextColor3 = Color3.fromRGB(255, 0, 50)
+        ValueLabel.Font = Enum.Font.Code
+        ValueLabel.TextSize = 11
+        ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+        ValueLabel.ZIndex = 20
+
+        local Track = Instance.new("TextButton", SliderRow)
+        Track.Size = UDim2.new(1, -10, 0, 10)
+        Track.Position = UDim2.new(0, 5, 0, 16)
+        Track.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        Track.BorderSizePixel = 1
+        Track.BorderColor3 = Color3.fromRGB(40, 40, 40)
+        Track.Text = ""
+        Track.ZIndex = 20
+
+        local Fill = Instance.new("Frame", Track)
+        Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+        Fill.BackgroundColor3 = Color3.fromRGB(255, 0, 50)
+        Fill.BorderSizePixel = 0
+        Fill.ZIndex = 20
+
+        local SetValue = function(input)
+            local l = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+            Fill.Size = UDim2.new(l, 0, 1, 0)
+            local val = math.floor(min + (max - min) * l)
+            ValueLabel.Text = val .. " / " .. max
+            callback(val)
+        end
+
+        local IsDragging = false
+
+        Track.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                IsDragging = true
+                SetValue(input)
+            end
+        end)
+
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if IsDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                SetValue(input)
+            end
+        end)
+
+        game:GetService("UserInputService").InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                IsDragging = false
+            end
+        end)
+
+        return {
+            _value = default,
+            SetValue = function(self, val)
+                self._value = val
+                local percent = (val - min) / (max - min)
+                Fill.Size = UDim2.new(percent, 0, 1, 0)
+                ValueLabel.Text = val .. " / " .. max
+                callback(val)
+            end,
+            GetValue = function(self)
+                return self._value
+            end
+        }
+    end
+
+    local walkToggle = AddToggle(CharSection, "WalkSpeed", false)
+    local walkSlider = AddSlider(CharSection, "Speed Value", 16, 500, 100)
+
+    local jumpToggle = AddToggle(CharSection, "JumpPower", false)
+    local jumpSlider = AddSlider(CharSection, "Jump Value", 50, 300, 100)
+
+    local infiniteJumpToggle = AddToggle(CharSection, "Infinite Jump", false)
+
+    local noclipToggle = AddToggle(CharSection, "Noclip", false)
+
+    Options = Options or {}
+    Options.WalkSpeedToggle = walkToggle
+    Options.WalkSpeedSlider = walkSlider
+    Options.JumpPowerToggle = jumpToggle
+    Options.JumpPowerSlider = jumpSlider
+    Options.InfiniteJumpToggle = infiniteJumpToggle
+    Options.NoclipToggle = noclipToggle
+
+    Toggles = Toggles or {}
+    Toggles.WalkSpeedToggle = walkToggle
+    Toggles.JumpPowerToggle = jumpToggle
+    Toggles.InfiniteJumpToggle = infiniteJumpToggle
+    Toggles.NoclipToggle = noclipToggle
+
+    if CharScroll and CharScroll:FindFirstChild("UIListLayout") then
+        CharScroll.CanvasSize = UDim2.new(0, 0, 0, CharScroll.UIListLayout.AbsoluteContentSize.Y + 30)
+    end
+end)
+
+task.spawn(function()
+    local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
+    local RunService = game:GetService("RunService")
+    local LocalPlayer = Players.LocalPlayer
+
+    local currentChar = nil
+    local currentHum = nil
+
+    local function SetupCharacter(character)
+        currentChar = character
+        currentHum = character:WaitForChild("Humanoid")
+        
+        if Options.NoclipToggle and Options.NoclipToggle.GetValue and Options.NoclipToggle:GetValue() then
+            for _, part in pairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+
+    if LocalPlayer.Character then
+        SetupCharacter(LocalPlayer.Character)
+    end
+
+    LocalPlayer.CharacterAdded:Connect(SetupCharacter)
+
+    RunService.RenderStepped:Connect(function()
+        if not currentHum then return end
+
+        if Options.WalkSpeedToggle and Options.WalkSpeedToggle.GetValue and Options.WalkSpeedToggle:GetValue() then
+            local speed = Options.WalkSpeedSlider and Options.WalkSpeedSlider.GetValue and Options.WalkSpeedSlider:GetValue() or 100
+            currentHum.WalkSpeed = speed
+        else
+            currentHum.WalkSpeed = 16
+        end
+
+        if Options.JumpPowerToggle and Options.JumpPowerToggle.GetValue and Options.JumpPowerToggle:GetValue() then
+            local jump = Options.JumpPowerSlider and Options.JumpPowerSlider.GetValue and Options.JumpPowerSlider:GetValue() or 100
+            currentHum.JumpPower = jump
+        else
+            currentHum.JumpPower = 50
+        end
+
+        if Options.NoclipToggle and Options.NoclipToggle.GetValue and Options.NoclipToggle:GetValue() then
+            if currentChar then
+                for _, part in pairs(currentChar:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+    end)
+
+    UserInputService.JumpRequest:Connect(function()
+        if Options.InfiniteJumpToggle and Options.InfiniteJumpToggle.GetValue and Options.InfiniteJumpToggle:GetValue() then
+            if currentHum then
+                currentHum:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end)
+end)

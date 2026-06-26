@@ -1645,7 +1645,7 @@ task.spawn(function()
     repeat task.wait(0.5) until Tabs and Tabs["character"] and Tabs["character"].Left
 
     local CharScroll = Tabs["character"].Left
-    local CharSection = _G.AddSection(CharScroll, "character stats")
+    local CharSection = _G.AddSection(CharScroll, "character configuration")
 
     local function AddToggle(parent, text, default, callback)
         local Row = Instance.new("Frame", parent)
@@ -1738,7 +1738,7 @@ task.spawn(function()
         Fill.BorderSizePixel = 0
         Fill.ZIndex = 20
 
-        local SetValue = function(input)
+        local function SetValue(input)
             local l = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
             Fill.Size = UDim2.new(l, 0, 1, 0)
             local val = math.floor(min + (max - min) * l)
@@ -1813,12 +1813,12 @@ end)
 
 task.spawn(function()
     local Players = game:GetService("Players")
-    local UserInputService = game:GetService("UserInputService")
     local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
     local LocalPlayer = Players.LocalPlayer
 
-    local currentChar = nil
     local currentHum = nil
+    local currentChar = nil
 
     local function SetupCharacter(character)
         currentChar = character
